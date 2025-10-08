@@ -1,10 +1,10 @@
 {
-  "name": "@lehman-brothers/application",
+  "name": "@lehman-brothers/domain",
   "version": "1.0.0",
   "type": "module",
   "main": "index.ts",
   "dependencies": {
-    "@lehman-brothers/domain": "*"
+    "exhaustive": "^0.1.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
