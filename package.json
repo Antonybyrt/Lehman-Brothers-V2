@@ -1,7 +1,9 @@
 {
   "private": true,
   "workspaces": [
+    "domain",
     "application",
-    "infrastructure/server"
+    "infrastructure/server",
+    "infrastructure/client"
   ]
 }

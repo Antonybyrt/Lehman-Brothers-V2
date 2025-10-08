@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  first_name  String
+  last_name   String
+  email       String   @unique
+  password    String
+  role        UserRole
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+
+  // Relations
+  accounts    Account[]
+  orders      Order[]
+  loans       Loan[]
+  chats_as_client Chat[] @relation("ClientChats")
+  chats_as_advisor Chat[] @relation("AdvisorChats")
+  messages    Message[]
+  savings_rates_updated SavingsRate[]
+
+  @@map("users")
+}
+
+model Account {
+  id         String   @id @default(uuid())
+  user_id    String
+  iban       String   @unique
+  name       String
+  balance    Decimal  @default(0.00) @db.Decimal(15, 2)
+  is_savings Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  // Relations
+  user            User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  transactions_source Transaction[] @relation("SourceTransactions")
+  transactions_target Transaction[] @relation("TargetTransactions")
+
+  @@map("accounts")
+}
+
+model SavingsRate {
+  id            String   @id @default(uuid())
+  rate          Decimal  @db.Decimal(5, 4)
+  effective_date DateTime
+  updated_by    String
+  created_at    DateTime @default(now())
+
+  // Relations
+  updated_by_user User @relation(fields: [updated_by], references: [id])
+
+  @@map("savings_rates")
+}
+
+model Transaction {
+  id               String          @id @default(uuid())
+  source_account_id String?
+  target_account_id String?
+  amount           Decimal         @db.Decimal(15, 2)
+  type             TransactionType
+  created_at       DateTime        @default(now())
+
+  // Relations
+  source_account Account? @relation("SourceTransactions", fields: [source_account_id], references: [id], onDelete: SetNull)
+  target_account Account? @relation("TargetTransactions", fields: [target_account_id], references: [id], onDelete: SetNull)
+
+  @@map("transactions")
+}
+
+model Stock {
+  id         String   @id @default(uuid())
+  name       String
+  symbol     String   @unique
+  available  Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  // Relations
+  orders Order[]
+
+  @@map("stocks")
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  user_id    String
+  stock_id   String
+  type       OrderType
+  unit_price Decimal     @db.Decimal(10, 2)
+  quantity   Int
+  fee        Decimal     @default(1.00) @db.Decimal(10, 2)
+  status     OrderStatus @default(PENDING)
+  created_at DateTime    @default(now())
+
+  // Relations
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  stock Stock @relation(fields: [stock_id], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model Loan {
+  id             String   @id @default(uuid())
+  user_id        String
+  amount         Decimal  @db.Decimal(15, 2)
+  annual_rate    Decimal  @db.Decimal(5, 4)
+  insurance_rate Decimal  @db.Decimal(5, 4)
+  months         Int
+  created_at     DateTime @default(now())
+
+  // Relations
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  installments Installment[]
+
+  @@map("loans")
+}
+
+model Installment {
+  id        String   @id @default(uuid())
+  loan_id   String
+  principal Decimal  @db.Decimal(15, 2)
+  interest  Decimal  @db.Decimal(15, 2)
+  insurance Decimal  @db.Decimal(15, 2)
+  total     Decimal  @db.Decimal(15, 2)
+  due_date  DateTime
+  paid      Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  // Relations
+  loan Loan @relation(fields: [loan_id], references: [id], onDelete: Cascade)
+
+  @@map("installments")
+}
+
+model Chat {
+  id         String   @id @default(uuid())
+  client_id  String
+  advisor_id String?
+  open       Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  // Relations
+  client  User      @relation("ClientChats", fields: [client_id], references: [id], onDelete: Cascade)
+  advisor User?     @relation("AdvisorChats", fields: [advisor_id], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@map("chats")
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  chat_id    String
+  author_id  String
+  content    String
+  from_client Boolean
+  sent_at    DateTime @default(now())
+
+  // Relations
+  chat   Chat @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  author User @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+enum UserRole {
+  CLIENT
+  DIRECTOR
+  ADVISOR
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
+}
+
+enum OrderType {
+  BUY
+  SELL
+}
+
+enum OrderStatus {
+  PENDING
+  EXECUTED
+  CANCELED
+}
