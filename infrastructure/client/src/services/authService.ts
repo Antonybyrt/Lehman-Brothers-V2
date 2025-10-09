@@ -116,6 +116,21 @@ class AuthService {
     }
     return null;
   }
+
+  async getRole(): Promise<{ success: boolean; role?: string; userId?: string; error?: string }> {
+    try {
+      const response = await this.api.get('/auth/getrole');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data) {
+        return error.response.data;
+      }
+      return {
+        success: false,
+        error: 'Network error occurred'
+      };
+    }
+  }
 }
 
 export const authService = new AuthService();

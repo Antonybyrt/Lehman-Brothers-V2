@@ -35,6 +35,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       if (result.success && result.token) {
         authService.setAuthToken(result.token)
         setSuccess('Login successful!')
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 1000)
         onSuccess?.()
       } else {
         setError(result.error || 'Login failed')
