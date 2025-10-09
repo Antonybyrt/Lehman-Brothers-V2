@@ -8,7 +8,7 @@ export class JwtAuthenticationService implements AuthenticationService {
   ) {}
 
   generateToken(userId: string, role: string): string {
-    return jwt.sign(
+    return (jwt.sign as any)(
       { userId, role },
       this.secret,
       { expiresIn: this.expiresIn }

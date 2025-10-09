@@ -9,8 +9,18 @@ export class PrismaUserRepository implements UserRepository {
   async save(user: User): Promise<void> {
     const userData = user.toPersistence();
     
-    await this.prisma.user.create({
-      data: {
+    await this.prisma.user.upsert({
+      where: { id: userData.id },
+      update: {
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        email: userData.email.getValue(),
+        password: userData.password.getHashedValue(),
+        role: userData.role.getValue(),
+        active: userData.active,
+        email_confirmed: userData.emailConfirmed,
+      },
+      create: {
         id: userData.id,
         first_name: userData.firstName,
         last_name: userData.lastName,
@@ -18,6 +28,7 @@ export class PrismaUserRepository implements UserRepository {
         password: userData.password.getHashedValue(),
         role: userData.role.getValue(),
         active: userData.active,
+        email_confirmed: userData.emailConfirmed,
         created_at: userData.createdAt,
       },
     });
@@ -40,6 +51,7 @@ export class PrismaUserRepository implements UserRepository {
       password: Password.fromHash(userData.password),
       role: UserRoleValue.create(userData.role),
       active: userData.active,
+      emailConfirmed: userData.email_confirmed,
       createdAt: userData.created_at,
     });
   }
@@ -61,6 +73,7 @@ export class PrismaUserRepository implements UserRepository {
       password: Password.fromHash(userData.password),
       role: UserRoleValue.create(userData.role),
       active: userData.active,
+      emailConfirmed: userData.email_confirmed,
       createdAt: userData.created_at,
     });
   }
