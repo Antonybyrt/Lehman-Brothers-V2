@@ -2,6 +2,7 @@ import { User, Result } from '@lehman-brothers/domain';
 import { UserRepository } from '../../repositories';
 import { AuthenticationService } from '../../services';
 import { exhaustive } from 'exhaustive';
+import { UserNotFoundError, UserDeactivatedError, InvalidCredentialsError, ValidationError } from '@lehman-brothers/domain';
 
 export interface LoginUserRequest {
   readonly email: string;
@@ -36,15 +37,15 @@ export class LoginUserUseCase {
       const user = await this.userRepository.findByEmail(request.email);
 
       if (!user) {
-        return { success: false, error: 'Invalid credentials' };
+        throw new UserNotFoundError(request.email);
       }
 
       if (!user.isActive()) {
-        return { success: false, error: 'Account is deactivated' };
+        throw new UserDeactivatedError(request.email);
       }
 
       if (!(await user.verifyPassword(request.password))) {
-        return { success: false, error: 'Invalid credentials' };
+        throw new InvalidCredentialsError();
       }
 
       const token = this.authenticationService.generateToken(
@@ -63,6 +64,12 @@ export class LoginUserUseCase {
         },
       };
     } catch (error) {
+      if (error instanceof UserNotFoundError || 
+          error instanceof UserDeactivatedError || 
+          error instanceof InvalidCredentialsError ||
+          error instanceof ValidationError) {
+        return { success: false, error: error.message };
+      }
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error occurred' 

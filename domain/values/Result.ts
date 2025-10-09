@@ -7,12 +7,12 @@ export class Result<T, E = Error> {
     private readonly _error?: E
   ) {}
 
-  public static success<T>(value: T): Result<T> {
-    return new Result(true, value);
+  public static success<T>(value: T): Result<T, never> {
+    return new Result<T, never>(true, value);
   }
 
   public static failure<E>(error: E): Result<never, E> {
-    return new Result(false, undefined, error);
+    return new Result<never, E>(false, undefined, error);
   }
 
   public isSuccess(): boolean {
@@ -40,12 +40,12 @@ export class Result<T, E = Error> {
   public map<U>(fn: (value: T) => U): Result<U, E> {
     if (this._isSuccess) {
       try {
-        return Result.success(fn(this._value!));
+        return Result.success<U>(fn(this._value!));
       } catch (error) {
-        return Result.failure(error as E);
+        return Result.failure<E>(error as E);
       }
     }
-    return Result.failure(this._error!);
+    return Result.failure<E>(this._error!);
   }
 
   public flatMap<U>(fn: (value: T) => Result<U, E>): Result<U, E> {
@@ -59,9 +59,9 @@ export class Result<T, E = Error> {
     onSuccess: (value: T) => U,
     onFailure: (error: E) => U
   ): U {
-    return exhaustive(this._isSuccess, {
-      true: () => onSuccess(this._value!),
-      false: () => onFailure(this._error!)
+    return exhaustive(String(this._isSuccess), {
+      'true': () => onSuccess(this._value!),
+      'false': () => onFailure(this._error!)
     });
   }
 }

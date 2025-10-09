@@ -1,4 +1,4 @@
-import { exhaustive } from 'exhaustive';
+import { InvalidUserRoleError } from '../errors';
 
 export enum UserRole {
   CLIENT = 'CLIENT',
@@ -17,7 +17,7 @@ export class UserRoleValue {
     const validRoles = Object.values(UserRole);
     
     if (!validRoles.includes(role as UserRole)) {
-      throw new Error(`Invalid user role: ${role}. Valid roles are: ${validRoles.join(', ')}`);
+      throw new InvalidUserRoleError(role, validRoles);
     }
     
     return new UserRoleValue(role as UserRole);
