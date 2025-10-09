@@ -1,5 +1,5 @@
-import { exhaustive } from 'exhaustive';
 import bcrypt from 'bcryptjs';
+import { PasswordTooShortError } from '../errors';
 
 export class Password {
   private readonly hashedValue: string;
@@ -10,7 +10,7 @@ export class Password {
 
   public static async create(plainPassword: string): Promise<Password> {
     if (!this.isValid(plainPassword)) {
-      throw new Error('Password must be at least 8 characters long');
+      throw new PasswordTooShortError(plainPassword.length);
     }
     const hashedValue = await this.hashPassword(plainPassword);
     return new Password(hashedValue);

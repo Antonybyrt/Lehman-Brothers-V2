@@ -1,6 +1,7 @@
 import { User, Result } from '@lehman-brothers/domain';
 import { UserRepository } from '../../repositories';
 import { exhaustive } from 'exhaustive';
+import { UserAlreadyExistsError, ValidationError } from '@lehman-brothers/domain';
 
 export interface RegisterUserRequest {
   readonly firstName: string;
@@ -29,7 +30,7 @@ export class RegisterUserUseCase {
       // Check if user already exists
       const existingUser = await this.userRepository.findByEmail(request.email);
       if (existingUser) {
-        return { success: false, error: 'User already exists with this email' };
+        throw new UserAlreadyExistsError(request.email);
       }
 
       // Create new user
@@ -50,6 +51,9 @@ export class RegisterUserUseCase {
         return { success: false, error: error.message };
       }
     } catch (error) {
+      if (error instanceof UserAlreadyExistsError || error instanceof ValidationError) {
+        return { success: false, error: error.message };
+      }
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error occurred' 

@@ -8,14 +8,15 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  first_name  String
-  last_name   String
-  email       String   @unique
-  password    String
-  role        UserRole
-  active      Boolean  @default(true)
-  created_at  DateTime @default(now())
+  id              String   @id @default(uuid())
+  first_name      String
+  last_name       String
+  email           String   @unique
+  password        String
+  role            UserRole
+  active          Boolean  @default(true)
+  created_at      DateTime @default(now())
+  email_confirmed Boolean @default(false) @map("email_confirmed")
 
   // Relations
   accounts    Account[]
@@ -27,6 +28,17 @@ model User {
   savings_rates_updated SavingsRate[]
 
   @@map("users")
+}
+
+model EmailConfirmation {
+  id         String   @id @default(uuid())
+  user_id    String   @map("user_id")
+  token      String   @unique
+  expires_at DateTime @map("expires_at")
+  confirmed  Boolean  @default(false)
+  created_at DateTime @default(now()) @map("created_at")
+
+  @@map("email_confirmations")
 }
 
 model Account {

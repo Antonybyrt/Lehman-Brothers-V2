@@ -1,4 +1,4 @@
-import { exhaustive } from 'exhaustive';
+import { InvalidEmailError } from '../errors';
 
 export class Email {
   private readonly value: string;
@@ -9,7 +9,7 @@ export class Email {
 
   public static create(email: string): Email {
     if (!this.isValid(email)) {
-      throw new Error('Invalid email format');
+      throw new InvalidEmailError(email);
     }
     return new Email(email.toLowerCase().trim());
   }
