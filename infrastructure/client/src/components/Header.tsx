@@ -1,9 +1,26 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
+import { LogOut } from "lucide-react"
+import { authService } from "@/services/authService"
 
 export function Header() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = authService.getStoredToken()
+    setIsAuthenticated(!!token)
+  }, [])
+
+  const handleLogout = () => {
+    authService.removeAuthToken()
+    setIsAuthenticated(false)
+    window.location.href = '/'
+  }
+
   return (
     <motion.header 
       className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/50"
@@ -36,21 +53,35 @@ export function Header() {
         </nav>
 
         <div className="flex items-center space-x-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="hover:bg-primary/10 transition-all duration-300 font-medium bg-background/60"
-            onClick={() => window.location.href = '/login'}
-          >
-            Login
-          </Button>
-          <Button 
-            size="sm" 
-            className="bg-primary/90 hover:bg-primary/80 shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
-            onClick={() => window.location.href = '/register'}
-          >
-            Register
-          </Button>
+          {isAuthenticated ? (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hover:bg-destructive/10 transition-all duration-300 font-medium bg-background/60 text-destructive hover:text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          ) : (
+            <>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hover:bg-primary/10 transition-all duration-300 font-medium bg-background/60"
+                onClick={() => window.location.href = '/login'}
+              >
+                Login
+              </Button>
+              <Button 
+                size="sm" 
+                className="bg-primary/90 hover:bg-primary/80 shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
+                onClick={() => window.location.href = '/register'}
+              >
+                Register
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </motion.header>
