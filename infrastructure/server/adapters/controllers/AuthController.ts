@@ -14,12 +14,25 @@ export class AuthController {
     exhaustive(String(result.success), {
       'true': () => {
         res.status(201).json({ 
+          success: true,
           message: 'User registered successfully', 
           userId: result.userId 
         });
       },
       'false': () => {
-        res.status(400).json({ error: result.error });
+        // Determine HTTP status code based on error type
+        const statusCode = exhaustive(String(result.errorType), {
+          'conflict': () => 409,
+          'validation': () => 400,
+          'server': () => 500,
+          'undefined': () => 400
+        });
+        
+        res.status(statusCode).json({ 
+          success: false,
+          error: result.error,
+          type: result.errorType || 'unknown'
+        });
       }
     });
   }
@@ -30,13 +43,14 @@ export class AuthController {
     exhaustive(String(result.success), {
       'true': () => {
         res.status(200).json({
+          success: true,
           message: 'Login successful',
           token: result.token,
           user: result.user,
         });
       },
       'false': () => {
-        res.status(401).json({ error: result.error });
+        res.status(401).json({ success: false, error: result.error });
       }
     });
   }

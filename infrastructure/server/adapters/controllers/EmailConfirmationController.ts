@@ -9,7 +9,7 @@ export class EmailConfirmationController {
     const { token } = req.params;
     
     if (!token) {
-      res.status(400).json({ error: 'Token is required' });
+      res.status(400).json({ success: false, error: 'Token is required' });
       return;
     }
 
@@ -18,11 +18,12 @@ export class EmailConfirmationController {
     exhaustive(String(result.success), {
       'true': () => {
         res.status(200).json({ 
+          success: true,
           message: 'Email confirmed successfully' 
         });
       },
       'false': () => {
-        res.status(400).json({ error: result.error });
+        res.status(400).json({ success: false, error: result.error });
       }
     });
   }

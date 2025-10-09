@@ -8,6 +8,7 @@ export interface UserProps {
   readonly password: Password;
   readonly role: UserRoleValue;
   readonly active: boolean;
+  readonly emailConfirmed: boolean;
   readonly createdAt: Date;
 }
 
@@ -34,6 +35,7 @@ export class User {
         password,
         role,
         active: true,
+        emailConfirmed: false,
         createdAt: new Date(),
       });
 
@@ -80,6 +82,10 @@ export class User {
     return this.props.createdAt;
   }
 
+  public isEmailConfirmed(): boolean {
+    return this.props.emailConfirmed;
+  }
+
   // Business methods
   public async verifyPassword(password: string): Promise<boolean> {
     return await this.props.password.verify(password);
@@ -96,6 +102,13 @@ export class User {
     return new User({
       ...this.props,
       active: true,
+    });
+  }
+
+  public confirmEmail(): User {
+    return new User({
+      ...this.props,
+      emailConfirmed: true,
     });
   }
 

@@ -1,5 +1,7 @@
-import { User, Result } from '@lehman-brothers/domain';
+import { User, Result, EmailConfirmation } from '@lehman-brothers/domain';
 import { UserRepository } from '../../repositories';
+import { EmailConfirmationRepository } from '../../repositories';
+import { EmailService } from '../../services';
 import { exhaustive } from 'exhaustive';
 import { UserAlreadyExistsError, ValidationError } from '@lehman-brothers/domain';
 
@@ -14,16 +16,22 @@ export interface RegisterUserRequest {
 export interface RegisterUserResponse {
   readonly success: boolean;
   readonly userId?: string;
+  readonly message?: string;
   readonly error?: string;
+  readonly errorType?: 'validation' | 'conflict' | 'server';
 }
 
 export class RegisterUserUseCase {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly emailConfirmationRepository: EmailConfirmationRepository,
+    private readonly emailService: EmailService
+  ) {}
 
   public async execute(request: RegisterUserRequest): Promise<RegisterUserResponse> {
     // Early return pattern - validate required fields
     if (!this.isValidRequest(request)) {
-      return { success: false, error: 'All fields are required' };
+      return { success: false, error: 'All fields are required', errorType: 'validation' };
     }
 
     try {
@@ -45,18 +53,37 @@ export class RegisterUserUseCase {
       if (userResult.isSuccess()) {
         const user = userResult.getValue();
         await this.userRepository.save(user);
-        return { success: true, userId: user.getId() };
+
+        // Create email confirmation
+        const emailConfirmation = EmailConfirmation.create(user.getId());
+        await this.emailConfirmationRepository.save(emailConfirmation);
+
+        // Send confirmation email
+        await this.emailService.sendConfirmationEmail(
+          user.getEmail().getValue(),
+          emailConfirmation.getToken()
+        );
+
+        return { 
+          success: true, 
+          userId: user.getId(),
+          message: 'User registered successfully. Please check your email to confirm your account.'
+        };
       } else {
         const error = userResult.getError();
-        return { success: false, error: error.message };
+        return { success: false, error: error.message, errorType: 'validation' };
       }
     } catch (error) {
-      if (error instanceof UserAlreadyExistsError || error instanceof ValidationError) {
-        return { success: false, error: error.message };
+      if (error instanceof UserAlreadyExistsError) {
+        return { success: false, error: error.message, errorType: 'conflict' };
+      }
+      if (error instanceof ValidationError) {
+        return { success: false, error: error.message, errorType: 'validation' };
       }
       return { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        errorType: 'server'
       };
     }
   }
