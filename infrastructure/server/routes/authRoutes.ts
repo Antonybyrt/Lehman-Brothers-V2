@@ -20,5 +20,13 @@ export const createAuthRoutes = (authController: AuthController): Router => {
     });
   });
 
+  router.get('/auth/getrole', authMiddleware, (req: AuthenticatedRequest, res) => {
+    res.status(200).json({
+      success: true,
+      role: req.user?.role,
+      userId: req.user?.userId
+    });
+  });
+
   return router;
 };
