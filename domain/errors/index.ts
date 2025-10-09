@@ -6,3 +6,7 @@ export * from './UserNotFoundError';
 export * from './InvalidCredentialsError';
 export * from './UserDeactivatedError';
 export * from './ValidationError';
+export * from './InvalidAccountNameError';
+export * from './IbanAlreadyExistsError';
+export * from './InvalidInitialBalanceError';
+export * from './InvalidIbanError';

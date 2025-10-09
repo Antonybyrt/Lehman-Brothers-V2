@@ -3,10 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { PrismaClient } from '@prisma/client';
-import { AuthController, EmailConfirmationController } from './adapters/controllers';
-import { PrismaUserRepository, PrismaEmailConfirmationRepository } from './adapters/repositories';
+import { AuthController, EmailConfirmationController, AccountController } from './adapters/controllers';
+import { PrismaUserRepository, PrismaEmailConfirmationRepository, PrismaAccountRepository } from './adapters/repositories';
 import { JwtAuthenticationService, NodemailerEmailService } from './adapters/services';
-import { RegisterUserUseCase, LoginUserUseCase, ConfirmEmailUseCase } from '@lehman-brothers/application';
+import { RegisterUserUseCase, LoginUserUseCase, ConfirmEmailUseCase, CreateAccountUseCase, GetUserAccountsUseCase } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 
 const app = express();
@@ -23,6 +23,7 @@ const prisma = new PrismaClient();
 // Dependencies injection
 const userRepository = new PrismaUserRepository(prisma);
 const emailConfirmationRepository = new PrismaEmailConfirmationRepository(prisma);
+const accountRepository = new PrismaAccountRepository(prisma);
 const authenticationService = new JwtAuthenticationService(
   process.env.JWT_SECRET || 'fallback-secret',
   process.env.JWT_EXPIRES_IN || '7d'
@@ -32,12 +33,15 @@ const emailService = new NodemailerEmailService();
 const registerUserUseCase = new RegisterUserUseCase(userRepository, emailConfirmationRepository, emailService);
 const loginUserUseCase = new LoginUserUseCase(userRepository, authenticationService);
 const confirmEmailUseCase = new ConfirmEmailUseCase(emailConfirmationRepository, userRepository);
+const createAccountUseCase = new CreateAccountUseCase(accountRepository, userRepository);
+const getUserAccountsUseCase = new GetUserAccountsUseCase(accountRepository, userRepository);
 
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
+const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase);
 
 // Routes
-app.use(createAppRoutes(authController, emailConfirmationController));
+app.use(createAppRoutes(authController, emailConfirmationController, accountController));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -51,8 +55,14 @@ app.listen(port, () => {
   console.log(`🔐 Auth endpoints:`);
   console.log(`   POST http://localhost:${port}/auth/register`);
   console.log(`   POST http://localhost:${port}/auth/login`);
+  console.log(`   GET http://localhost:${port}/auth/me (Protected)`);
+  console.log(`   GET http://localhost:${port}/auth/getrole (Protected)`);
   console.log(`📧 Email confirmation:`);
   console.log(`   GET http://localhost:${port}/confirm-email/:token`);
+  console.log(`   GET http://localhost:${port}/email-status (Protected)`);
+  console.log(`💳 Account endpoints:`);
+  console.log(`   POST http://localhost:${port}/accounts (Protected)`);
+  console.log(`   GET http://localhost:${port}/accounts (Protected)`);
 });
 
 process.on('SIGINT', async () => {
