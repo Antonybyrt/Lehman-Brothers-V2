@@ -2,11 +2,13 @@ import { Router } from 'express';
 import { createAuthRoutes } from './authRoutes';
 import { createHealthRoutes } from './healthRoutes';
 import { createEmailConfirmationRoutes } from './emailConfirmationRoutes';
-import { AuthController, EmailConfirmationController } from '../adapters/controllers';
+import { createAccountRoutes } from './accountRoutes';
+import { AuthController, EmailConfirmationController, AccountController } from '../adapters/controllers';
 
 export const createAppRoutes = (
   authController: AuthController,
-  emailConfirmationController: EmailConfirmationController
+  emailConfirmationController: EmailConfirmationController,
+  accountController: AccountController
 ): Router => {
   const router = Router();
 
@@ -14,6 +16,7 @@ export const createAppRoutes = (
   router.use(createHealthRoutes());
   router.use(createAuthRoutes(authController));
   router.use(createEmailConfirmationRoutes(emailConfirmationController));
+  router.use(createAccountRoutes(accountController));
 
   return router;
 };

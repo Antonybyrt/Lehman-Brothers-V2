@@ -35,6 +35,15 @@ cd infrastructure/server/ npm run dev
 - `GET /health` - Health check
 - `POST /auth/register` - User registration
 - `POST /auth/login` - User login
+- `GET /confirm-email/:token` - Email confirmation
+- `GET /auth/me` - Get current user info (Protected)
+- `GET /auth/getrole` - Get current user role (Protected)
+- `GET /email-status` - Get email confirmation status (Protected)
+- `POST /accounts` - Create new account (Protected)
+- `GET /accounts` - Get user accounts (Protected)
+- `GET /accounts/:id` - Get account by ID (Protected)
+- `PATCH /accounts/:id` - Update account (Protected)
+- `DELETE /accounts/:id` - Delete account (Protected, requires transfer IBAN if balance > 0)
 
 ## 📊 Database
 
@@ -45,6 +54,10 @@ cd infrastructure/server/ npm run dev
 ## 🎯 Features
 
 - Secure authentication (bcrypt + JWT)
+- Email confirmation for registration
 - User management (Client/Director/Advisor)
-- Modular and testable architecture
+- Account creation with unique IBAN generation
+- Role-based access control
+- Clean Code & Functional Programming practices
+- Scalable and maintainable architecture
 - Functional error handling
