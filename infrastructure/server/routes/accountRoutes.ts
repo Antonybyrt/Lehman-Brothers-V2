@@ -14,5 +14,17 @@ export const createAccountRoutes = (accountController: AccountController): Route
     accountController.getUserAccounts(req, res)
   );
 
+  router.get('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) => 
+    accountController.getAccountById(req, res)
+  );
+
+  router.patch('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) => 
+    accountController.updateAccount(req, res)
+  );
+
+  router.delete('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) => 
+    accountController.deleteAccount(req, res)
+  );
+
   return router;
 };

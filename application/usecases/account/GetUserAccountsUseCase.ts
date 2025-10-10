@@ -86,7 +86,7 @@ export class GetUserAccountsUseCase {
   }
 
   private isValidRequest(request: GetUserAccountsRequest): boolean {
-    return exhaustive(String(request.userId), {
+    return exhaustive(String(!!request.userId), {
       'true': () => true,
       'false': () => false
     });

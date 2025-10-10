@@ -41,6 +41,9 @@ cd infrastructure/server/ npm run dev
 - `GET /email-status` - Get email confirmation status (Protected)
 - `POST /accounts` - Create new account (Protected)
 - `GET /accounts` - Get user accounts (Protected)
+- `GET /accounts/:id` - Get account by ID (Protected)
+- `PATCH /accounts/:id` - Update account (Protected)
+- `DELETE /accounts/:id` - Delete account (Protected)
 
 ## 📊 Database
 

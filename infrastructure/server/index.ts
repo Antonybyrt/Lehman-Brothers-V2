@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { AuthController, EmailConfirmationController, AccountController } from './adapters/controllers';
 import { PrismaUserRepository, PrismaEmailConfirmationRepository, PrismaAccountRepository } from './adapters/repositories';
 import { JwtAuthenticationService, NodemailerEmailService } from './adapters/services';
-import { RegisterUserUseCase, LoginUserUseCase, ConfirmEmailUseCase, CreateAccountUseCase, GetUserAccountsUseCase } from '@lehman-brothers/application';
+import { RegisterUserUseCase, LoginUserUseCase, ConfirmEmailUseCase, CreateAccountUseCase, GetUserAccountsUseCase, GetAccountByIdUseCase, UpdateAccountUseCase, DeleteAccountUseCase } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 
 const app = express();
@@ -35,10 +35,13 @@ const loginUserUseCase = new LoginUserUseCase(userRepository, authenticationServ
 const confirmEmailUseCase = new ConfirmEmailUseCase(emailConfirmationRepository, userRepository);
 const createAccountUseCase = new CreateAccountUseCase(accountRepository, userRepository);
 const getUserAccountsUseCase = new GetUserAccountsUseCase(accountRepository, userRepository);
+const getAccountByIdUseCase = new GetAccountByIdUseCase(accountRepository);
+const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
+const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository);
 
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
-const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase);
+const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase);
 
 // Routes
 app.use(createAppRoutes(authController, emailConfirmationController, accountController));
@@ -63,6 +66,9 @@ app.listen(port, () => {
   console.log(`💳 Account endpoints:`);
   console.log(`   POST http://localhost:${port}/accounts (Protected)`);
   console.log(`   GET http://localhost:${port}/accounts (Protected)`);
+  console.log(`   GET http://localhost:${port}/accounts/:id (Protected)`);
+  console.log(`   PATCH http://localhost:${port}/accounts/:id (Protected)`);
+  console.log(`   DELETE http://localhost:${port}/accounts/:id (Protected)`);
 });
 
 process.on('SIGINT', async () => {

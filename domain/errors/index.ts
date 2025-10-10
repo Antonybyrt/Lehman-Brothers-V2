@@ -10,3 +10,5 @@ export * from './InvalidAccountNameError';
 export * from './IbanAlreadyExistsError';
 export * from './InvalidInitialBalanceError';
 export * from './InvalidIbanError';
+export * from './AccountNotFoundError';
+export * from './UnauthorizedAccountAccessError';
