@@ -1,6 +1,6 @@
-import { AccountRepository } from '../../repositories';
+import { AccountRepository, TransactionRepository } from '../../repositories';
 import { exhaustive } from 'exhaustive';
-import { AccountNotFoundError, UnauthorizedAccountAccessError, TransferRequiredError, InvalidIbanError } from '@lehman-brothers/domain';
+import { AccountNotFoundError, UnauthorizedAccountAccessError, TransferRequiredError, InvalidIbanError, Transaction } from '@lehman-brothers/domain';
 
 export interface DeleteAccountRequest {
   readonly accountId: string;
@@ -16,7 +16,10 @@ export interface DeleteAccountResponse {
 }
 
 export class DeleteAccountUseCase {
-  constructor(private readonly accountRepository: AccountRepository) {}
+  constructor(
+    private readonly accountRepository: AccountRepository,
+    private readonly transactionRepository: TransactionRepository
+  ) {}
 
   public async execute(request: DeleteAccountRequest): Promise<DeleteAccountResponse> {
     if (!this.isValidRequest(request)) {
@@ -60,9 +63,23 @@ export class DeleteAccountUseCase {
         }
 
         const { sourceAccount, targetAccount: updatedTargetAccount } = transferResult.getValue();
-        
+
+        const transactionResult = Transaction.create({
+          sourceAccountId: account.getId(),
+          targetAccountId: targetAccount.getId(),
+          amount: account.getBalance(),
+          type: 'DEBIT'
+        });
+
+        if (transactionResult.isFailure()) {
+          throw transactionResult.getError();
+        }
+
+        const transaction = transactionResult.getValue();
+
         await this.accountRepository.save(sourceAccount);
         await this.accountRepository.save(updatedTargetAccount);
+        await this.transactionRepository.save(transaction);
       }
 
       await this.accountRepository.delete(request.accountId);

@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { PrismaClient } from '@prisma/client';
 import { AuthController, EmailConfirmationController, AccountController } from './adapters/controllers';
-import { PrismaUserRepository, PrismaEmailConfirmationRepository, PrismaAccountRepository } from './adapters/repositories';
+import { PrismaUserRepository, PrismaEmailConfirmationRepository, PrismaAccountRepository, PrismaTransactionRepository } from './adapters/repositories';
 import { JwtAuthenticationService, NodemailerEmailService } from './adapters/services';
 import { RegisterUserUseCase, LoginUserUseCase, ConfirmEmailUseCase, CreateAccountUseCase, GetUserAccountsUseCase, GetAccountByIdUseCase, UpdateAccountUseCase, DeleteAccountUseCase } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
@@ -24,6 +24,7 @@ const prisma = new PrismaClient();
 const userRepository = new PrismaUserRepository(prisma);
 const emailConfirmationRepository = new PrismaEmailConfirmationRepository(prisma);
 const accountRepository = new PrismaAccountRepository(prisma);
+const transactionRepository = new PrismaTransactionRepository(prisma);
 const authenticationService = new JwtAuthenticationService(
   process.env.JWT_SECRET || 'fallback-secret',
   process.env.JWT_EXPIRES_IN || '7d'
@@ -37,7 +38,7 @@ const createAccountUseCase = new CreateAccountUseCase(accountRepository, userRep
 const getUserAccountsUseCase = new GetUserAccountsUseCase(accountRepository, userRepository);
 const getAccountByIdUseCase = new GetAccountByIdUseCase(accountRepository);
 const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
-const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository);
+const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
 
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
