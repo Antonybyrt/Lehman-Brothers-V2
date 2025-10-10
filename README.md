@@ -43,7 +43,7 @@ cd infrastructure/server/ npm run dev
 - `GET /accounts` - Get user accounts (Protected)
 - `GET /accounts/:id` - Get account by ID (Protected)
 - `PATCH /accounts/:id` - Update account (Protected)
-- `DELETE /accounts/:id` - Delete account (Protected)
+- `DELETE /accounts/:id` - Delete account (Protected, requires transfer IBAN if balance > 0)
 
 ## 📊 Database
 

@@ -187,6 +187,7 @@ export class AccountController {
 
   public async deleteAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { id } = req.params;
+    const { transferIban } = req.body;
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -200,6 +201,7 @@ export class AccountController {
     const result = await this.deleteAccountUseCase.execute({
       accountId: id!,
       userId,
+      transferIban,
     });
 
     exhaustive(String(result.success), {
