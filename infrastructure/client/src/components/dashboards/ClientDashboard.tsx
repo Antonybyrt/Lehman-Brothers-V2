@@ -6,24 +6,23 @@ import { Header } from "@/components/Header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { 
-  CreditCard, 
-  TrendingUp, 
-  PiggyBank, 
-  ArrowUpDown, 
-  Plus, 
+import {
+  CreditCard,
+  TrendingUp,
+  PiggyBank,
+  ArrowUpDown,
+  Plus,
   Settings,
   DollarSign,
   Activity,
-  Target,
   BarChart3,
   Loader2,
   Wallet,
-  Sparkles
+  MessageSquare
 } from "lucide-react"
 import { accountService, Account } from "@/services/accountService"
-import { authService } from "@/services/authService"
 import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog } from "@/components/dialogs"
+import { ChatContainer } from "@/components/chat/ChatContainer"
 
 export default function ClientDashboard() {
   const router = useRouter()
@@ -60,7 +59,7 @@ export default function ClientDashboard() {
       try {
         setLoading(true)
         setError(null)
-        
+
         const token = localStorage.getItem('auth_token')
         if (token) {
           accountService.setAuthToken(token)
@@ -69,15 +68,15 @@ export default function ClientDashboard() {
           router.push('/login')
           return
         }
-        
+
         const response = await accountService.getUserAccounts()
-        
+
         if (response.success && response.accounts) {
           setAccounts(response.accounts)
         } else {
           setError(response.error || 'Failed to load accounts')
         }
-      } catch (err) {
+      } catch {
         setError('Network error occurred')
       } finally {
         setLoading(false)
@@ -85,7 +84,7 @@ export default function ClientDashboard() {
     }
 
     loadAccounts()
-  }, [])
+  }, [router])
 
   const handleAccountCreated = () => {
     // Reload accounts after creation
@@ -95,9 +94,9 @@ export default function ClientDashboard() {
         if (token) {
           accountService.setAuthToken(token)
         }
-        
+
         const response = await accountService.getUserAccounts()
-        
+
         if (response.success && response.accounts) {
           setAccounts(response.accounts)
         }
@@ -124,7 +123,8 @@ export default function ClientDashboard() {
     { id: 'accounts', label: 'Accounts', icon: CreditCard },
     { id: 'transactions', label: 'Transactions', icon: ArrowUpDown },
     { id: 'investments', label: 'Investments', icon: TrendingUp },
-    { id: 'savings', label: 'Savings', icon: PiggyBank }
+    { id: 'savings', label: 'Savings', icon: PiggyBank },
+    { id: 'contact', label: 'Contact', icon: MessageSquare }
   ]
 
   return (
@@ -210,11 +210,10 @@ export default function ClientDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground shadow-lg'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${activeTab === tab.id
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span className="font-medium">{tab.label}</span>
@@ -252,7 +251,7 @@ export default function ClientDashboard() {
                       <p>{error}</p>
                     </div>
                   ) : accounts.length === 0 ? (
-                    <motion.div 
+                    <motion.div
                       className="text-center py-8"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -261,15 +260,15 @@ export default function ClientDashboard() {
                       <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4">
                         <Wallet className="h-8 w-8 text-primary" />
                       </div>
-                      
+
                       <h3 className="text-lg font-semibold text-foreground mb-2">
                         No accounts yet
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
                         Create your first account to get started
                       </p>
-                      
-                      <Button 
+
+                      <Button
                         onClick={() => setIsCreateDialogOpen(true)}
                         className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg"
                       >
@@ -293,7 +292,7 @@ export default function ClientDashboard() {
                           </div>
                         </div>
                       ))}
-                      <Button 
+                      <Button
                         onClick={() => setIsCreateDialogOpen(true)}
                         className="w-full mt-4 bg-primary/90 hover:bg-primary/80"
                       >
@@ -346,7 +345,7 @@ export default function ClientDashboard() {
                     <CreditCard className="h-5 w-5" />
                     <span>Account Management</span>
                   </span>
-                  <Button 
+                  <Button
                     onClick={() => setIsCreateDialogOpen(true)}
                     className="bg-primary/90 hover:bg-primary/80"
                   >
@@ -368,7 +367,7 @@ export default function ClientDashboard() {
                       <p>{error}</p>
                     </div>
                   ) : accounts.length === 0 ? (
-                    <motion.div 
+                    <motion.div
                       className="text-center py-8"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -377,15 +376,15 @@ export default function ClientDashboard() {
                       <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4">
                         <CreditCard className="h-8 w-8 text-primary" />
                       </div>
-                      
+
                       <h3 className="text-lg font-semibold text-foreground mb-2">
                         No accounts found
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
                         Create your first account to start managing your finances
                       </p>
-                      
-                      <Button 
+
+                      <Button
                         onClick={() => setIsCreateDialogOpen(true)}
                         className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg"
                       >
@@ -414,16 +413,16 @@ export default function ClientDashboard() {
                           <p className="text-xl font-bold text-foreground">{account.balance.toLocaleString('fr-FR')} €</p>
                         </div>
                         <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleEditAccount(account)}
                           >
                             <Settings className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeleteAccount(account)}
                           >
@@ -510,7 +509,7 @@ export default function ClientDashboard() {
                       <p>{error}</p>
                     </div>
                   ) : accounts.filter(account => account.isSavings).length === 0 ? (
-                    <motion.div 
+                    <motion.div
                       className="text-center py-8"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -519,15 +518,15 @@ export default function ClientDashboard() {
                       <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-full flex items-center justify-center mb-4">
                         <PiggyBank className="h-8 w-8 text-blue-500" />
                       </div>
-                      
+
                       <h3 className="text-lg font-semibold text-foreground mb-2">
                         No savings accounts
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
                         Open a savings account to grow your money
                       </p>
-                      
-                      <Button 
+
+                      <Button
                         onClick={() => setIsSavingsDialogOpen(true)}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
                       >
@@ -537,31 +536,31 @@ export default function ClientDashboard() {
                     </motion.div>
                   ) : (
                     accounts.filter(account => account.isSavings).map((account) => (
-                    <div key={account.id} className="p-4 bg-background/60 rounded-lg border border-border/30">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <p className="font-semibold text-foreground">{account.name}</p>
-                          <p className="text-sm text-muted-foreground">{account.iban}</p>
+                      <div key={account.id} className="p-4 bg-background/60 rounded-lg border border-border/30">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <p className="font-semibold text-foreground">{account.name}</p>
+                            <p className="text-sm text-muted-foreground">{account.iban}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-foreground">{account.balance.toLocaleString('fr-FR')} €</p>
+                            <p className="text-sm text-green-600">Savings Account</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-foreground">{account.balance.toLocaleString('fr-FR')} €</p>
-                          <p className="text-sm text-green-600">Savings Account</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center p-3 bg-background/40 rounded-lg">
+                            <p className="text-sm text-muted-foreground">Account Type</p>
+                            <p className="font-semibold text-green-600">Savings</p>
+                          </div>
+                          <div className="text-center p-3 bg-background/40 rounded-lg">
+                            <p className="text-sm text-muted-foreground">Created</p>
+                            <p className="font-semibold text-muted-foreground">{new Date(account.createdAt).toLocaleDateString()}</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 bg-background/40 rounded-lg">
-                          <p className="text-sm text-muted-foreground">Account Type</p>
-                          <p className="font-semibold text-green-600">Savings</p>
-                        </div>
-                        <div className="text-center p-3 bg-background/40 rounded-lg">
-                          <p className="text-sm text-muted-foreground">Created</p>
-                          <p className="font-semibold text-muted-foreground">{new Date(account.createdAt).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                    </div>
                     ))
                   )}
-                  <Button 
+                  <Button
                     onClick={() => setIsSavingsDialogOpen(true)}
                     className="w-full bg-primary/90 hover:bg-primary/80"
                   >
@@ -569,6 +568,21 @@ export default function ClientDashboard() {
                     Open a Savings Account
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'contact' && (
+            <Card className="border-0 shadow-lg bg-background/90 backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Contact Support</span>
+                </CardTitle>
+                <CardDescription>Chat with our advisors in real-time</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ChatContainer />
               </CardContent>
             </Card>
           )}
@@ -582,7 +596,7 @@ export default function ClientDashboard() {
         isSavings={false}
         onAccountCreated={handleAccountCreated}
       />
-      
+
       <CreateAccountDialog
         isOpen={isSavingsDialogOpen}
         onClose={() => setIsSavingsDialogOpen(false)}

@@ -24,8 +24,10 @@ model User {
   loans       Loan[]
   chats_as_client Chat[] @relation("ClientChats")
   chats_as_advisor Chat[] @relation("AdvisorChats")
+  chats_transferred_from Chat[] @relation("TransferredChats")
   messages    Message[]
   savings_rates_updated SavingsRate[]
+  message_reads         MessageRead[] @relation("UserReads")
 
   @@map("users")
 }
@@ -151,34 +153,63 @@ model Installment {
 }
 
 model Chat {
-  id         String   @id @default(uuid())
-  client_id  String
-  advisor_id String?
-  open       Boolean  @default(true)
-  created_at DateTime @default(now())
+  id                   String   @id @default(uuid())
+  subject              String
+  client_id            String
+  advisor_id           String?
+  transferred_from_id  String?
+  status               ChatStatus @default(OPEN)
+  open                 Boolean  @default(true)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
 
   // Relations
-  client  User      @relation("ClientChats", fields: [client_id], references: [id], onDelete: Cascade)
-  advisor User?     @relation("AdvisorChats", fields: [advisor_id], references: [id], onDelete: SetNull)
-  messages Message[]
+  client           User      @relation("ClientChats", fields: [client_id], references: [id], onDelete: Cascade)
+  advisor          User?     @relation("AdvisorChats", fields: [advisor_id], references: [id], onDelete: SetNull)
+  transferred_from User?     @relation("TransferredChats", fields: [transferred_from_id], references: [id], onDelete: SetNull)
+  messages         Message[]
 
   @@map("chats")
 }
 
 model Message {
-  id         String   @id @default(uuid())
-  chat_id    String
-  author_id  String
-  content    String
-  from_client Boolean
-  sent_at    DateTime @default(now())
+  id             BigInt   @id @default(autoincrement())
+  chat_id        String
+  author_id      String
+  content        String
+  attachment_url String?
+  edited         Boolean  @default(false)
+  deleted        Boolean  @default(false)
+  sent_at        DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   // Relations
   chat   Chat @relation(fields: [chat_id], references: [id], onDelete: Cascade)
   author User @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  reads  MessageRead[]
 
   @@map("messages")
 }
+
+model MessageRead {
+  message_id BigInt
+  user_id    String
+  read_at    DateTime @default(now())
+
+  // Relations
+  message Message @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  user    User    @relation("UserReads", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([message_id, user_id])
+  @@map("messages_reads")
+}
+
+enum ChatStatus {
+  OPEN
+  TRANSFERRED
+  CLOSED
+}
+
 
 enum UserRole {
   CLIENT

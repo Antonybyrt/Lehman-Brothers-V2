@@ -84,9 +84,12 @@ class AccountService {
     try {
       const response = await this.api.post('/accounts', accountData);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: CreateAccountResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -101,9 +104,12 @@ class AccountService {
     try {
       const response = await this.api.get('/accounts');
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: GetAccountsResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -118,9 +124,12 @@ class AccountService {
     try {
       const response = await this.api.get(`/accounts/${accountId}`);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: GetAccountByIdResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -135,9 +144,12 @@ class AccountService {
     try {
       const response = await this.api.patch(`/accounts/${accountId}`, updateData);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: UpdateAccountResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -154,9 +166,12 @@ class AccountService {
         data: deleteData
       });
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: DeleteAccountResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
