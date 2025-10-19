@@ -4,7 +4,7 @@
  */
 
 // Types d'événements WebSocket
-export type WsEventType = 'join' | 'typing' | 'message:new' | 'message:read' | 'chat:created' | 'chat:updated' | 'error' | 'pong';
+export type WsEventType = 'join' | 'typing' | 'message:new' | 'message:read' | 'message:created' | 'chat:created' | 'chat:updated' | 'chat:closed' | 'error' | 'pong';
 
 // Message de base WebSocket
 export interface WsMessage<T = any> {

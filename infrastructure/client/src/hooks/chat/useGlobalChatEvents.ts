@@ -63,8 +63,6 @@ export function useGlobalChatEvents({
               toast.success(`${message.payload.advisorName || 'An advisor'} created a chat: ${message.payload.subject}`)
             }
           } else if (message.type === 'chat:updated') {
-            console.log('[WS Global] Chat updated:', message.payload)
-
             // Si c'est un transfert et que je suis conseiller
             if (message.payload.advisorId !== undefined && userRole === 'ADVISOR') {
               onChatsUpdate((prev) => {

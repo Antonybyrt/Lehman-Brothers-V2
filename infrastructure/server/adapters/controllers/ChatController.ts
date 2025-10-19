@@ -230,6 +230,33 @@ export class ChatController {
       },
     });
 
+    // Notifier globalement pour mettre à jour les compteurs de messages en attente
+    const chat = await this.chatRepository.findById(chatId);
+    if (chat) {
+      // Notifier l'émetteur (pour qu'il mette à jour son propre compteur)
+      this.wsService.broadcastToUser(userContext.userId, {
+        type: 'message:created',
+        payload: {
+          chatId,
+          authorId: userContext.userId,
+          messageId: result.messageId!,
+        }
+      });
+
+      // Notifier l'autre partie (si c'est un client qui écrit, notifier l'advisor et vice-versa)
+      const recipientId = userContext.userId === chat.clientId ? chat.advisorId : chat.clientId;
+      if (recipientId) {
+        this.wsService.broadcastToUser(recipientId, {
+          type: 'message:created',
+          payload: {
+            chatId,
+            authorId: userContext.userId,
+            messageId: result.messageId!,
+          }
+        });
+      }
+    }
+
     console.log(
       `[ChatController] New message in chat ${chatId} from ${userContext.userId}`
     );

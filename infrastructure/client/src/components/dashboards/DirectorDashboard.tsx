@@ -20,7 +20,7 @@ import {
   Eye,
   MessageSquare
 } from "lucide-react"
-import { DashboardChat } from "@/components/dashboards/DashboardChat"
+import { ChatContainer } from "@/components/chat/ChatContainer"
 
 export default function DirectorDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -467,7 +467,7 @@ export default function DirectorDashboard() {
           )}
 
           {activeTab === 'chats' && (
-            <DashboardChat />
+            <ChatContainer />
           )}
 
           {activeTab === 'notifications' && (

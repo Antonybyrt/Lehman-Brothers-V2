@@ -163,7 +163,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 onClick={() => window.location.href = '/register'}
                 className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors font-medium"
               >
-                Don't have an account? Create one
+                Don&apos;t have an account? Create one
               </button>
             </div>
           </CardContent>

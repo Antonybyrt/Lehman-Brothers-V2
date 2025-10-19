@@ -17,10 +17,12 @@ import {
   BarChart3,
   MessageSquare
 } from "lucide-react"
-import { DashboardChat } from "@/components/dashboards/DashboardChat"
+import { ChatContainer } from "@/components/chat/ChatContainer"
+import { usePendingChatsCount } from "@/hooks/chat/useUnreadChatsCount"
 
 export default function AdvisorDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
+  const { count: unreadChatsCount } = usePendingChatsCount()
 
   // Mock data for advisor dashboard
   const mockData = {
@@ -146,17 +148,23 @@ export default function AdvisorDashboard() {
           <div className="flex space-x-1 bg-background/60 backdrop-blur-xl rounded-lg p-1 border border-border/50">
             {tabs.map((tab) => {
               const Icon = tab.icon
+              const showBadge = tab.id === 'chats' && unreadChatsCount > 0
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${activeTab === tab.id
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 relative ${activeTab === tab.id
                     ? 'bg-primary text-primary-foreground shadow-lg'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
                     }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span className="font-medium">{tab.label}</span>
+                  {showBadge && (
+                    <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                      {unreadChatsCount}
+                    </span>
+                  )}
                 </button>
               )
             })}
@@ -353,7 +361,7 @@ export default function AdvisorDashboard() {
           )}
 
           {activeTab === 'chats' && (
-            <DashboardChat />
+            <ChatContainer />
           )}
 
           {activeTab === 'calculator' && (

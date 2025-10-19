@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { accountService, Account } from "@/services/accountService"
 import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog } from "@/components/dialogs"
-import { DashboardChat } from "@/components/dashboards/DashboardChat"
+import { ChatContainer } from "@/components/chat/ChatContainer"
 
 export default function ClientDashboard() {
   const router = useRouter()
@@ -582,7 +582,7 @@ export default function ClientDashboard() {
                 <CardDescription>Chat with our advisors in real-time</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <DashboardChat />
+                <ChatContainer />
               </CardContent>
             </Card>
           )}

@@ -80,18 +80,10 @@ export class PrismaMessageReadRepository implements MessageReadRepository {
       read_at: new Date(),
     }));
 
-    console.log('[PrismaMessageReadRepository] markMultipleAsRead:', {
-      userId,
-      messageIds,
-      readsCount: reads.length
-    });
-
     // Utiliser createMany avec skipDuplicates pour éviter les erreurs si déjà lu
     const result = await this.prisma.messageRead.createMany({
       data: reads,
       skipDuplicates: true,
     });
-
-    console.log('[PrismaMessageReadRepository] Created:', result.count);
   }
 }

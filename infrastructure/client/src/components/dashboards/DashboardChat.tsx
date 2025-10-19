@@ -18,10 +18,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from '@/components/ui/button'
 import { MessageSquare, Loader2, AlertCircle, Plus } from "lucide-react"
 import { authService } from '@/services/authService'
-import { useChatSocket } from '@/hooks/useChatSocket'
-import { useGlobalChatEvents } from '@/hooks/useGlobalChatEvents'
+import { useChatSocket } from '@/hooks/chat/useChatSocket'
+import { useGlobalChatEvents } from '@/hooks/chat/useGlobalChatEvents'
 
-import { useChatMessages } from '@/hooks/useChatMessages'
+import { useChatMessages } from '@/hooks/chat/useChatMessages'
 import { chatService, Chat } from '@/services/chatService'
 import { CreateChatDialog, TransferChatDialog } from '@/components/dialogs'
 import { ChatSidebar } from '@/components/chat/ChatSidebar'

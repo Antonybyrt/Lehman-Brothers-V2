@@ -9,7 +9,7 @@
 
 import { useState, useRef } from 'react'
 import { DisplayMessage } from '@/types/chat'
-import { MessageCreatedPayload, UserTypingPayload } from '@/hooks/useChatSocket'
+import { MessageCreatedPayload, UserTypingPayload } from '@/hooks/chat/useChatSocket'
 
 interface UseChatHandlersProps {
   userId: string | null
