@@ -1,15 +1,11 @@
 /**
- * ChatContainer - Composant wrapper pour le système de chat
- * 
- * Utilise le hook useChatLogic pour centraliser la logique
- * et passer des props structurées aux composants enfants.
- * 
- * Réduit le props drilling de ~26 props individuelles à 4-5 objets structurés.
+ * ChatContainer - Main chat system wrapper
+ * Uses unified useChat hook for all chat functionality
  */
 
 'use client'
 
-import { useChatLogic } from '@/hooks/chat/useChatLogic'
+import { useChat } from '@/hooks/chat/useChat'
 import { ChatSidebar } from './ChatSidebar'
 import { ChatHeader } from './ChatHeader'
 import { ChatMessageList } from './ChatMessageList'
@@ -18,10 +14,9 @@ import { CreateChatDialog } from '../dialogs/CreateChatDialog'
 import { TransferChatDialog } from '../dialogs/TransferChatDialog'
 
 export function ChatContainer() {
-  const chatLogic = useChatLogic()
+  const chat = useChat()
 
-  // État de chargement initial
-  if (chatLogic.root.isLoading) {
+  if (chat.root.isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
@@ -32,12 +27,11 @@ export function ChatContainer() {
     )
   }
 
-  // Gestion des erreurs
-  if (chatLogic.root.error) {
+  if (chat.root.error) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">{chatLogic.root.error}</p>
+          <p className="text-red-600 dark:text-red-400">{chat.root.error}</p>
         </div>
       </div>
     )
@@ -45,21 +39,14 @@ export function ChatContainer() {
 
   return (
     <div className="flex flex-1 rounded-lg overflow-hidden border-0 bg-background/90 backdrop-blur-xl shadow-lg h-210">
-      {/* Sidebar avec la liste des chats */}
-      <ChatSidebar {...chatLogic.sidebar} />
+      <ChatSidebar {...chat.sidebar} />
 
-      {/* Zone principale du chat */}
       <div className="flex flex-1 flex-col">
-        {chatLogic.selected.chatId ? (
+        {chat.selected.chatId ? (
           <>
-            {/* Header du chat */}
-            <ChatHeader {...chatLogic.header} />
-
-            {/* Liste des messages */}
-            <ChatMessageList {...chatLogic.messageList} />
-
-            {/* Input pour envoyer des messages */}
-            <ChatInput {...chatLogic.input} />
+            <ChatHeader {...chat.header} />
+            <ChatMessageList {...chat.messageList} />
+            <ChatInput {...chat.input} />
           </>
         ) : (
           <div className="flex flex-1 items-center justify-center">
@@ -76,9 +63,8 @@ export function ChatContainer() {
         )}
       </div>
 
-      {/* Dialogs */}
-      <CreateChatDialog {...chatLogic.dialogs.create} />
-      <TransferChatDialog {...chatLogic.dialogs.transfer} />
+      <CreateChatDialog {...chat.dialogs.create} />
+      <TransferChatDialog {...chat.dialogs.transfer} />
     </div>
   )
 }

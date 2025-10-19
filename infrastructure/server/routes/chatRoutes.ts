@@ -24,6 +24,14 @@ export const createChatRoutes = (chatRestController: ChatRestController): Router
   );
 
   /**
+   * GET /chats/pending-count
+   * Get count of chats pending advisor response
+   */
+  router.get('/chats/pending-count', authMiddleware, (req: AuthenticatedRequest, res) =>
+    chatRestController.getPendingChatsCount(req, res)
+  );
+
+  /**
    * GET /chats/:id
    * Get a specific chat by ID
    */

@@ -1,10 +1,10 @@
 /**
- * Hook pour compter les chats avec des messages non répondus
+ * Hook to count chats pending advisor response
  * 
- * Pour un advisor, compte les chats où le dernier message
- * vient d'un client et n'a pas encore reçu de réponse.
+ * For an advisor, counts chats where the last message
+ * is from a client and hasn't received a response yet.
  * 
- * Met à jour le compteur en temps réel via WebSocket.
+ * Updates the counter in real-time via WebSocket.
  */
 
 import { useState, useEffect } from 'react'
@@ -14,10 +14,10 @@ import { useAuth } from '@/hooks/useAuth'
 export function usePendingChatsCount() {
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const { token, userId } = useAuth()
+  const { token } = useAuth()
 
   useEffect(() => {
-    const fetchUnreadCount = async () => {
+    const fetchPendingCount = async () => {
       try {
         if (!token) {
           setLoading(false)
@@ -25,37 +25,24 @@ export function usePendingChatsCount() {
         }
 
         chatService.setAuthToken(token)
-        const response = await chatService.getUserChats()
+        const response = await chatService.getPendingChatsCount()
 
-        if (response.success && response.chats) {
-          // Compter les chats où le dernier message est d'un client et le chat est ouvert
-          const pendingChats = await Promise.all(
-            response.chats.map(async (chat) => {
-              if (chat.status !== 'OPEN') return false
-
-              const messages = await chatService.getChatMessages(chat.id, { limit: 1 })
-              if (!messages.success) return false
-              if (!messages.messages || messages.messages.length === 0) return true
-              const lastMessage = messages.messages[0]
-              return lastMessage.authorId !== userId
-            })
-          )
-
-          setCount(pendingChats.filter(Boolean).length)
+        if (response.success && response.count !== undefined) {
+          setCount(response.count)
         }
       } catch (error) {
-        console.error('Error fetching unread count:', error)
+        console.error('Error fetching pending chats count:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchUnreadCount()
+    fetchPendingCount()
 
-    // Rafraîchir toutes les 30 secondes
-    const interval = setInterval(fetchUnreadCount, 30000)
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000)
 
-    // Écouter les événements WebSocket pour mettre à jour en temps réel
+    // Listen to WebSocket events for real-time updates
     if (token) {
       const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'}?token=${token}`
       let ws: WebSocket | null = null
@@ -67,17 +54,17 @@ export function usePendingChatsCount() {
           try {
             const message = JSON.parse(event.data)
 
-            // Rafraîchir le compteur quand :
-            // - Un nouveau message est créé (peut changer le dernier message)
-            // - Un chat est créé, mis à jour ou fermé
+            // Refresh counter when:
+            // - A new message is created (can change the last message)
+            // - A chat is created, updated or closed
             if (message.type === 'message:created' ||
               message.type === 'chat:created' ||
               message.type === 'chat:updated' ||
               message.type === 'chat:closed') {
-              fetchUnreadCount()
+              fetchPendingCount()
             }
           } catch {
-            // Ignorer les erreurs de parsing
+            // Ignore parsing errors
           }
         }
       } catch (error) {
@@ -93,7 +80,7 @@ export function usePendingChatsCount() {
     }
 
     return () => clearInterval(interval)
-  }, [token, userId])
+  }, [token])
 
   return { count, loading }
 }

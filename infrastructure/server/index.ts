@@ -43,7 +43,8 @@ import {
   MarkAsReadUseCase,
   TransferChatUseCase,
   SetTypingStatusUseCase,
-  CloseChatUseCase
+  CloseChatUseCase,
+  GetPendingChatsCountUseCase
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 
@@ -102,6 +103,7 @@ const markAsReadUseCase = new MarkAsReadUseCase(messageReadRepository, messageRe
 const transferChatUseCase = new TransferChatUseCase(chatRepository, userRepository);
 const setTypingStatusUseCase = new SetTypingStatusUseCase(chatRepository);
 const closeChatUseCase = new CloseChatUseCase(chatRepository);
+const getPendingChatsCountUseCase = new GetPendingChatsCountUseCase(chatRepository, messageRepository);
 
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
@@ -112,6 +114,7 @@ const chatRestController = new ChatRestController(
   getMessagesBeforeUseCase,
   closeChatUseCase,
   transferChatUseCase,
+  getPendingChatsCountUseCase,
   chatRepository,
   userRepository,
   chatViewRepository,

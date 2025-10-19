@@ -81,6 +81,7 @@ export class CreateChatUseCase {
           advisorId: chatView.advisorId || undefined,
           advisorName: chatView.advisorName || undefined,
           status: chatView.status,
+          createdAt: chatView.createdAt.toISOString(),
         };
 
         await this.notificationService.notifyRole('ADVISOR', 'chat:created', chatPayload);

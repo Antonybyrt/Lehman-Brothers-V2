@@ -36,6 +36,12 @@ export interface GetChatMessagesResponse {
   error?: string;
 }
 
+export interface GetPendingChatsCountResponse {
+  success: boolean;
+  count?: number;
+  error?: string;
+}
+
 class ChatService {
   private api = axios.create({
     baseURL: API_BASE_URL,
@@ -168,6 +174,25 @@ class ChatService {
         return {
           success: false,
           error: error.response.data.error || 'Failed to transfer chat',
+        };
+      }
+      return {
+        success: false,
+        error: 'Network error occurred',
+      };
+    }
+  }
+
+  // Get count of chats pending advisor response
+  async getPendingChatsCount(): Promise<GetPendingChatsCountResponse> {
+    try {
+      const response = await this.api.get<GetPendingChatsCountResponse>('/chats/pending-count');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        return {
+          success: false,
+          error: error.response.data.error || 'Failed to get pending chats count',
         };
       }
       return {

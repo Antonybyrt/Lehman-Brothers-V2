@@ -3,7 +3,8 @@ import {
   CreateChatUseCase,
   GetMessagesBeforeUseCase,
   CloseChatUseCase,
-  TransferChatUseCase
+  TransferChatUseCase,
+  GetPendingChatsCountUseCase
 } from '@lehman-brothers/application';
 import { exhaustive } from 'exhaustive';
 import { AuthenticatedRequest } from '../../middleware/authMiddleware';
@@ -21,6 +22,7 @@ export class ChatRestController {
     private readonly getMessagesBeforeUseCase: GetMessagesBeforeUseCase,
     private readonly closeChatUseCase: CloseChatUseCase,
     private readonly transferChatUseCase: TransferChatUseCase,
+    private readonly getPendingChatsCountUseCase: GetPendingChatsCountUseCase,
     private readonly chatRepository: ChatRepository,
     private readonly userRepository: UserRepository,
     private readonly chatViewRepository: ChatViewRepository,
@@ -149,6 +151,48 @@ export class ChatRestController {
         error: 'Failed to retrieve chats'
       });
     }
+  }
+
+  /**
+   * GET /chats/pending-count
+   * Get count of chats pending advisor response
+   */
+  public async getPendingChatsCount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || !userRole) {
+      res.status(401).json({
+        success: false,
+        error: 'User authentication required'
+      });
+      return;
+    }
+
+    const result = await this.getPendingChatsCountUseCase.execute({
+      userId,
+      userRole
+    });
+
+    exhaustive(String(result.success), {
+      'true': () => {
+        res.status(200).json({
+          success: true,
+          count: result.count
+        });
+      },
+      'false': () => {
+        const statusCode = exhaustive(String(result.errorType), {
+          'validation': () => 400,
+          'server': () => 500,
+        });
+
+        res.status(statusCode).json({
+          success: false,
+          error: result.error
+        });
+      }
+    });
   }
 
   /**
