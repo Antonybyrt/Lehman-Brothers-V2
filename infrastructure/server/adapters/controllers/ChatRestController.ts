@@ -61,8 +61,6 @@ export class ChatRestController {
 
     exhaustive(String(result.success), {
       'true': async () => {
-        // Le Use Case gère maintenant les notifications directement
-        // Le Controller se concentre uniquement sur la réponse HTTP
         res.status(201).json({
           success: true,
           chatId: result.chatId,
@@ -104,31 +102,24 @@ export class ChatRestController {
     try {
       let chats: any[] = [];
 
-      // Get chats based on user role
       if (userRole === 'CLIENT') {
         chats = await this.chatRepository.findByClientId(userId);
       } else if (userRole === 'ADVISOR') {
-        // Advisors see both their assigned chats AND unassigned chats
         const assignedChats = await this.chatRepository.findByAdvisorId(userId);
         const unassignedChats = await this.chatRepository.findUnassigned();
 
-        // Combine both lists, removing duplicates by ID
         const chatMap = new Map();
         [...assignedChats, ...unassignedChats].forEach(chat => {
           chatMap.set(chat.id, chat);
         });
         chats = Array.from(chatMap.values());
       } else {
-        // ADMIN can see all unassigned chats
         chats = await this.chatRepository.findUnassigned();
       }
 
-      // Transform chats to response format with user names
       const chatsData = await Promise.all(chats.map(async (chat) => {
-        // Fetch client name via UserViewRepository
         const clientName = await this.userViewRepository.getFullNameById(chat.clientId) || 'Unknown Client';
 
-        // Fetch advisor name if assigned
         let advisorName: string | undefined;
         if (chat.advisorId) {
           advisorName = await this.userViewRepository.getFullNameById(chat.advisorId) || 'Unknown Advisor';
@@ -196,7 +187,6 @@ export class ChatRestController {
         return;
       }
 
-      // Check authorization
       const isAuthorized =
         chat.clientId === userId ||
         chat.advisorId === userId ||
@@ -356,14 +346,12 @@ export class ChatRestController {
 
     exhaustive(String(result.success), {
       'true': async () => {
-        // Utiliser les notifications décidées par le Use Case
         if (result.notifications) {
           const chatPayload = {
             chatId,
             status: 'CLOSED',
           };
 
-          // Notifier le client si nécessaire
           if (result.notifications.notifyClient) {
             this.wsServerService.broadcastToUser(result.notifications.clientId, {
               type: 'chat:updated',
@@ -371,7 +359,6 @@ export class ChatRestController {
             });
           }
 
-          // Notifier l'advisor si nécessaire
           if (result.notifications.notifyAdvisor && result.notifications.advisorId) {
             this.wsServerService.broadcastToUser(result.notifications.advisorId, {
               type: 'chat:updated',
@@ -445,7 +432,6 @@ export class ChatRestController {
 
     exhaustive(String(result.success), {
       'true': async () => {
-        // Utiliser le ChatViewRepository pour obtenir les données enrichies
         const chatView = await this.chatViewRepository.findByIdWithNames(chatId);
 
         if (chatView) {
@@ -460,9 +446,7 @@ export class ChatRestController {
             createdAt: chatView.createdAt.toISOString(),
           };
 
-          // Utiliser les notifications décidées par le Use Case
           if (result.notifications) {
-            // Notifier le client si nécessaire
             if (result.notifications.notifyClient) {
               this.wsServerService.broadcastToUser(result.notifications.clientId, {
                 type: 'chat:updated',
@@ -470,7 +454,6 @@ export class ChatRestController {
               });
             }
 
-            // Notifier l'ancien advisor si nécessaire
             if (result.notifications.notifyPreviousAdvisor && result.notifications.previousAdvisorId) {
               this.wsServerService.broadcastToUser(result.notifications.previousAdvisorId, {
                 type: 'chat:updated',
@@ -478,7 +461,6 @@ export class ChatRestController {
               });
             }
 
-            // Notifier le nouvel advisor si nécessaire
             if (result.notifications.notifyNewAdvisor) {
               this.wsServerService.broadcastToUser(result.notifications.newAdvisorId, {
                 type: 'chat:updated',

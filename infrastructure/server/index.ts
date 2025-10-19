@@ -166,7 +166,8 @@ httpServer.listen(port, () => {
   console.log(`   POST http://localhost:${port}/chats/:id/transfer (Protected - Advisor)`);
   console.log(`🔌 WebSocket chat:`);
   console.log(`   ws://localhost:${port}?token=<JWT>`);
-  console.log(`   Events: message:new, message:read, typing, chat:created, chat:updated`);
+  console.log(`   Client → Server: message:new, message:read, typing, join`);
+  console.log(`   Server → Client: message:created, chat:created, chat:updated, chat:closed`);
 });
 
 process.on('SIGINT', async () => {

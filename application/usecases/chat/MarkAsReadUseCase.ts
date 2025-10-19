@@ -22,12 +22,8 @@ export interface MarkAsReadResponse {
 }
 
 /**
- * Use case: Marquer des messages comme lus par un utilisateur
- * 
- * Règles métier:
- * - Vérifie que les messages existent et appartiennent au même chat
- * - Vérifie que l'utilisateur a accès au chat
- * - Ne marque que les messages non encore lus
+ * Mark messages as read
+ * Business rules: Validates messages belong to same chat, verifies chat access, marks only unread messages
  */
 export class MarkAsReadUseCase {
   constructor(
@@ -37,7 +33,6 @@ export class MarkAsReadUseCase {
   ) { }
 
   async execute(request: MarkAsReadRequest): Promise<MarkAsReadResponse> {
-    // Early return pattern - validate required fields
     if (!this.isValidRequest(request)) {
       return {
         success: false,
@@ -54,7 +49,6 @@ export class MarkAsReadUseCase {
     }
 
     try {
-      // Récupérer le premier message pour obtenir le chatId
       const firstMessageId = request.messageIds[0];
       if (!firstMessageId) {
         throw new ValidationError('messageIds', 'Invalid message ID');
@@ -65,18 +59,15 @@ export class MarkAsReadUseCase {
         throw new MessageNotFoundError(firstMessageId);
       }
 
-      // Vérifier que le chat existe
       const chat = await this.chatRepository.findById(firstMessage.chatId);
       if (!chat) {
         throw new ChatNotFoundError(firstMessage.chatId);
       }
 
-      // Vérifier l'accès au chat
       if (!chat.hasAccess(request.userId, request.userRole)) {
         throw new UnauthorizedChatAccessError(firstMessage.chatId, request.userId);
       }
 
-      // Vérifier que tous les messages appartiennent au même chat
       const messages = await Promise.all(
         request.messageIds.map(id => this.messageRepository.findById(id))
       );
@@ -90,7 +81,6 @@ export class MarkAsReadUseCase {
         }
       }
 
-      // Filtrer les messages non encore lus
       const unreadMessageIds: string[] = [];
       for (const messageId of request.messageIds) {
         const hasRead = await this.messageReadRepository.hasRead(messageId, request.userId);

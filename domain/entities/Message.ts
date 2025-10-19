@@ -21,7 +21,6 @@ interface MessageProps {
 export class Message {
   private constructor(private readonly props: MessageProps) { }
 
-  // Factory method: créer un nouveau message
   static create(params: {
     id: string;
     chatId: string;
@@ -30,7 +29,6 @@ export class Message {
     attachmentUrl?: string | null;
   }): Result<Message, Error> {
     try {
-      // Créer le value object MessageContent (validation incluse)
       const contentResult = MessageContent.create(params.content);
       if (!contentResult.isSuccess()) {
         return Result.failure(contentResult.getError());
@@ -54,7 +52,6 @@ export class Message {
     }
   }
 
-  // Factory method: reconstituer depuis la persistance
   static fromPersistence(data: {
     id: string;
     chat_id: string;
@@ -66,7 +63,6 @@ export class Message {
     sent_at: Date;
     updated_at: Date;
   }): Message {
-    // On suppose que les données de la DB sont valides
     const contentResult = MessageContent.create(data.content);
     if (!contentResult.isSuccess()) {
       throw new Error('Invalid content from database');
@@ -85,7 +81,6 @@ export class Message {
     });
   }
 
-  // Convertir vers le format persistance
   toPersistence(): {
     id: string;
     chat_id: string;
@@ -110,7 +105,6 @@ export class Message {
     };
   }
 
-  // Règle métier: éditer le message
   edit(newContent: string): Result<Message, Error> {
     if (this.props.deleted) {
       return Result.failure(new MessageAlreadyDeletedError(this.props.id));
@@ -131,7 +125,6 @@ export class Message {
     return Result.success(updatedMessage);
   }
 
-  // Règle métier: supprimer le message (soft delete)
   delete(): Result<Message, Error> {
     if (this.props.deleted) {
       return Result.failure(new MessageAlreadyDeletedError(this.props.id));
@@ -152,7 +145,6 @@ export class Message {
     return Result.success(updatedMessage);
   }
 
-  // Getters
   get id(): string {
     return this.props.id;
   }
@@ -189,7 +181,6 @@ export class Message {
     return this.props.updatedAt;
   }
 
-  // Règle métier: vérifier si l'utilisateur peut éditer/supprimer le message
   canModify(userId: string): boolean {
     return this.props.authorId === userId && !this.props.deleted;
   }

@@ -29,12 +29,11 @@ interface ChatProps {
 export class Chat {
   private constructor(private readonly props: ChatProps) { }
 
-  // Factory method: créer un nouveau chat
   static create(params: {
     id: string;
     subject: string;
     clientId: string;
-    advisorId?: string | null; // Optional: advisor can be assigned at creation
+    advisorId?: string | null;
   }): Result<Chat, Error> {
     try {
       const chatSubjectResult = ChatSubject.create(params.subject);
@@ -60,7 +59,6 @@ export class Chat {
     }
   }
 
-  // Factory method: reconstituer depuis la persistance
   static fromPersistence(data: {
     id: string;
     subject: string;
@@ -72,7 +70,6 @@ export class Chat {
     created_at: Date;
     updated_at: Date;
   }): Chat {
-    // On suppose que les données de la DB sont valides
     const chatSubjectResult = ChatSubject.create(data.subject);
     if (!chatSubjectResult.isSuccess()) {
       throw new Error('Invalid subject from database');
@@ -91,7 +88,6 @@ export class Chat {
     });
   }
 
-  // Convertir vers le format persistance
   toPersistence(): {
     id: string;
     subject: string;
@@ -116,7 +112,6 @@ export class Chat {
     };
   }
 
-  // Règle métier: assigner un conseiller (première réponse)
   assignAdvisor(advisorId: string): Result<Chat, Error> {
     if (this.props.advisorId) {
       return Result.failure(new ChatAlreadyHasAdvisorError(this.props.id));
@@ -131,7 +126,6 @@ export class Chat {
     return Result.success(updatedChat);
   }
 
-  // Règle métier: transférer le chat à un autre conseiller
   transferTo(newAdvisorId: string): Result<Chat, Error> {
     if (!this.props.advisorId) {
       return Result.failure(
@@ -148,14 +142,13 @@ export class Chat {
       ...this.props,
       transferredFromId: this.props.advisorId,
       advisorId: newAdvisorId,
-      status: ChatStatus.OPEN, // Le chat reste ouvert après transfert
+      status: ChatStatus.OPEN,
       updatedAt: new Date(),
     });
 
     return Result.success(updatedChat);
   }
 
-  // Règle métier: fermer le chat
   close(): Result<Chat, Error> {
     if (!this.props.open) {
       return Result.failure(new ChatAlreadyClosedError(this.props.id));
@@ -171,7 +164,6 @@ export class Chat {
     return Result.success(updatedChat);
   }
 
-  // Règle métier: rouvrir le chat
   reopen(): Result<Chat, Error> {
     if (this.props.open) {
       return Result.failure(new ChatAlreadyOpenError(this.props.id));
@@ -187,7 +179,6 @@ export class Chat {
     return Result.success(updatedChat);
   }
 
-  // Getters
   get id(): string {
     return this.props.id;
   }
@@ -224,24 +215,19 @@ export class Chat {
     return this.props.updatedAt;
   }
 
-  // Règle métier: vérifier si un utilisateur a accès au chat
   hasAccess(userId: string, userRole: string): boolean {
-    // Le client propriétaire a toujours accès
     if (userId === this.props.clientId) {
       return true;
     }
 
-    // Les directeurs ont accès à tous les chats
     if (userRole === 'DIRECTOR') {
       return true;
     }
 
-    // Le conseiller assigné a accès
     if (userRole === 'ADVISOR' && userId === this.props.advisorId) {
       return true;
     }
 
-    // Tous les conseillers ont accès si aucun conseiller n'est assigné
     if (userRole === 'ADVISOR' && !this.props.advisorId) {
       return true;
     }

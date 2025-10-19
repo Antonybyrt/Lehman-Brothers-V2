@@ -7,7 +7,6 @@ interface MessageReadProps {
 export class MessageRead {
   private constructor(private readonly props: MessageReadProps) { }
 
-  // Factory method: créer un nouveau statut de lecture
   static create(params: { messageId: string; userId: string }): MessageRead {
     return new MessageRead({
       messageId: params.messageId,
@@ -16,7 +15,6 @@ export class MessageRead {
     });
   }
 
-  // Factory method: reconstituer depuis la persistance
   static fromPersistence(data: {
     message_id: string;
     user_id: string;
@@ -29,7 +27,6 @@ export class MessageRead {
     });
   }
 
-  // Convertir vers le format persistance
   toPersistence(): {
     message_id: string;
     user_id: string;
@@ -42,7 +39,6 @@ export class MessageRead {
     };
   }
 
-  // Getters
   get messageId(): string {
     return this.props.messageId;
   }

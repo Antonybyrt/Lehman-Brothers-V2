@@ -32,12 +32,8 @@ export interface GetMessagesBeforeResponse {
 }
 
 /**
- * Use case: Récupérer les messages d'un chat avec pagination
- * 
- * Règles métier:
- * - Vérifie que le chat existe et que l'utilisateur y a accès
- * - Retourne les messages par ordre chronologique décroissant (du plus récent au plus ancien)
- * - Pagination basée sur l'ID du message (beforeId)
+ * Get chat messages with pagination
+ * Business rules: Validates chat access, returns messages in reverse chronological order, pagination by message ID
  */
 export class GetMessagesBeforeUseCase {
   constructor(
@@ -48,7 +44,6 @@ export class GetMessagesBeforeUseCase {
   ) { }
 
   async execute(request: GetMessagesBeforeRequest): Promise<GetMessagesBeforeResponse> {
-    // Early return pattern - validate required fields
     if (!this.isValidRequest(request)) {
       return {
         success: false,
@@ -60,42 +55,31 @@ export class GetMessagesBeforeUseCase {
     try {
       const limit = request.limit || 50;
 
-      // Vérifier que le chat existe
       const chat = await this.chatRepository.findById(request.chatId);
       if (!chat) {
         throw new ChatNotFoundError(request.chatId);
       }
 
-      // Vérifier l'accès au chat
       if (!chat.hasAccess(request.userId, request.userRole)) {
         throw new UnauthorizedChatAccessError(request.chatId, request.userId);
       }
 
-      // Récupérer les messages avec pagination
-      // On demande limit + 1 pour savoir s'il y a d'autres messages
       const messages = await this.messageRepository.findByChatId(
         request.chatId,
         limit + 1,
         request.beforeId
       );
 
-      // Vérifier s'il y a plus de messages
       const hasMore = messages.length > limit;
 
-      // Retourner seulement 'limit' messages
       const resultMessages = hasMore ? messages.slice(0, limit) : messages;
 
-      // Déterminer l'autre participant du chat
-      // Si je suis le client, l'autre est l'advisor, et vice versa
       const otherUserId = chat.clientId === request.userId ? chat.advisorId : chat.clientId;
 
-      // Récupérer les statuts de lecture par L'AUTRE utilisateur
-      // isRead = true signifie "l'autre personne a lu mon message"
       const messageReads = otherUserId
         ? await this.messageReadRepository.findByUserIdAndChatId(otherUserId, request.chatId)
         : [];
 
-      // Créer un Set des IDs de messages lus PAR L'AUTRE UTILISATEUR
       const readMessageIds = new Set(messageReads.map(mr => mr.messageId));
 
       // Récupérer les noms des auteurs de manière unique

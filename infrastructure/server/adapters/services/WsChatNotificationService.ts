@@ -3,15 +3,8 @@ import { WsServerService } from './WsServerService';
 import { WsEventType } from '../../ws/types';
 
 /**
- * Implémentation WebSocket du service de notifications de chat
- * 
- * Cette classe adapte le WsServerService (technique) 
- * pour implémenter l'interface ChatNotificationService (métier)
- * 
- * Responsabilités :
- * - Implémenter le contrat défini dans la couche Application
- * - Déléguer l'envoi de messages au WsServerService
- * - Faire le pont entre la logique métier et l'implémentation technique
+ * WebSocket implementation of ChatNotificationService
+ * Adapts WsServerService to implement the application layer interface
  */
 export class WsChatNotificationService implements ChatNotificationService {
   constructor(private readonly wsService: WsServerService) { }
@@ -38,9 +31,6 @@ export class WsChatNotificationService implements ChatNotificationService {
   }
 
   async notifyChatExcept(chatId: string, userId: string, type: string, payload: unknown): Promise<void> {
-    // Note: Le WsServerService n'a pas de méthode pour exclure par userId
-    // On utilise broadcastToRoom qui exclut par WebSocket
-    // Pour une implémentation complète, il faudrait enrichir WsServerService
     this.wsService.sendToRoom(chatId, {
       type: type as WsEventType,
       payload: payload as any,

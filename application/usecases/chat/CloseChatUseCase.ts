@@ -26,18 +26,13 @@ export interface CloseChatResponse {
 }
 
 /**
- * Use case: Fermer un chat
- * 
- * Règles métier:
- * - Vérifie que le chat existe
- * - Vérifie que l'utilisateur a les permissions (client propriétaire, conseiller assigné, ou directeur)
- * - Ferme le chat
+ * Close a chat
+ * Business rules: Validates permissions (client owner, assigned advisor, or director), closes the chat
  */
 export class CloseChatUseCase {
   constructor(private readonly chatRepository: ChatRepository) { }
 
   async execute(request: CloseChatRequest): Promise<CloseChatResponse> {
-    // Early return pattern - validate required fields
     if (!this.isValidRequest(request)) {
       return {
         success: false,
@@ -47,13 +42,11 @@ export class CloseChatUseCase {
     }
 
     try {
-      // Vérifier que le chat existe
       const chat = await this.chatRepository.findById(request.chatId);
       if (!chat) {
         throw new ChatNotFoundError(request.chatId);
       }
 
-      // Vérifier les permissions
       const canClose =
         request.userId === chat.clientId ||
         request.userId === chat.advisorId ||
@@ -63,7 +56,6 @@ export class CloseChatUseCase {
         throw new UnauthorizedChatAccessError(request.chatId, request.userId);
       }
 
-      // Fermer le chat
       const closeResult = chat.close();
       if (!closeResult.isSuccess()) {
         throw closeResult.getError();
@@ -71,10 +63,8 @@ export class CloseChatUseCase {
 
       const closedChat = closeResult.getValue();
 
-      // Sauvegarder
       await this.chatRepository.save(closedChat);
 
-      // Décider qui notifier (logique métier)
       const notifications: CloseChatNotifications = {
         notifyClient: true,
         notifyAdvisor: closedChat.advisorId !== null,

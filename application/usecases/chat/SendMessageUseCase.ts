@@ -27,14 +27,8 @@ export interface SendMessageResponse {
 }
 
 /**
- * Use case: Envoyer un message dans un chat
- * 
- * Règles métier:
- * - Vérifie que le chat existe et que l'utilisateur y a accès
- * - Vérifie que l'auteur existe
- * - Si c'est la première réponse d'un conseiller, assigne le conseiller au chat
- * - Crée et sauvegarde le message
- * - Envoie les notifications appropriées aux participants
+ * Send a message in a chat
+ * Business rules: Validates chat access, auto-assigns advisor on first reply, creates message, notifies participants
  */
 export class SendMessageUseCase {
   constructor(
@@ -46,7 +40,6 @@ export class SendMessageUseCase {
   ) { }
 
   async execute(request: SendMessageRequest): Promise<SendMessageResponse> {
-    // Early return pattern - validate required fields
     if (!this.isValidRequest(request)) {
       return {
         success: false,
@@ -56,30 +49,25 @@ export class SendMessageUseCase {
     }
 
     try {
-      // Vérifier que le chat existe
       const chat = await this.chatRepository.findById(request.chatId);
       if (!chat) {
         throw new ChatNotFoundError(request.chatId);
       }
 
-      // Vérifier que le chat n'est pas fermé
       if (chat.status === 'CLOSED') {
         throw new ChatAlreadyClosedError(request.chatId);
       }
 
-      // Vérifier que l'auteur existe
       const author = await this.userRepository.findById(request.authorId);
       if (!author) {
         throw new UserNotFoundError(request.authorId);
       }
 
-      // Vérifier l'accès au chat
       const userRole = author.getRole().getValue();
       if (!chat.hasAccess(request.authorId, userRole)) {
         throw new UnauthorizedChatAccessError(request.chatId, request.authorId);
       }
 
-      // Détecter si c'est la première réponse d'un conseiller
       let isFirstAdvisorResponse = false;
       if (userRole === 'ADVISOR' && !chat.advisorId) {
         const assignResult = chat.assignAdvisor(request.authorId);
@@ -90,7 +78,6 @@ export class SendMessageUseCase {
         isFirstAdvisorResponse = true;
       }
 
-      // Créer le message
       const messageResult = Message.create({
         id: this.generateMessageId(),
         chatId: request.chatId,
@@ -105,10 +92,8 @@ export class SendMessageUseCase {
 
       const message = messageResult.getValue();
 
-      // Sauvegarder le message
       await this.messageRepository.save(message);
 
-      // Envoyer les notifications (logique métier dans le Use Case)
       const authorView = await this.userViewRepository.findByIdAsView(request.authorId);
       const authorName = authorView?.fullName || 'Unknown';
 
@@ -123,11 +108,8 @@ export class SendMessageUseCase {
         },
       };
 
-      // ✅ Envoyer à tous les participants du chat (via la room)
-      // Cela évite les doublons si un utilisateur a plusieurs connexions WebSocket
       await this.notificationService.notifyChat(chat.id, 'message:created', messagePayload);
 
-      // Si c'est la première réponse d'un advisor, notifier le client de l'assignation
       if (isFirstAdvisorResponse) {
         const chatUpdatePayload = {
           chatId: chat.id,
@@ -191,7 +173,6 @@ export class SendMessageUseCase {
     });
   }
 
-  // Génère un ID unique pour le message (bigint timestamp + random)
   private generateMessageId(): string {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 1000);

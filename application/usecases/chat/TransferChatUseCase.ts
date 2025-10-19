@@ -37,13 +37,8 @@ export interface TransferChatResponse {
 }
 
 /**
- * Use case: Transférer un chat à un autre conseiller
- * 
- * Règles métier:
- * - Vérifie que le chat existe et a un conseiller assigné
- * - Vérifie que le nouvel utilisateur est un conseiller
- * - Vérifie que l'utilisateur demandant le transfert est autorisé (directeur ou conseiller actuel)
- * - Met à jour le chat avec le nouveau conseiller
+ * Transfer a chat to another advisor
+ * Business rules: Validates permissions (director or current advisor), verifies new advisor role, updates chat
  */
 export class TransferChatUseCase {
   constructor(
@@ -52,7 +47,6 @@ export class TransferChatUseCase {
   ) { }
 
   async execute(request: TransferChatRequest): Promise<TransferChatResponse> {
-    // Early return pattern - validate required fields
     if (!this.isValidRequest(request)) {
       return {
         success: false,
@@ -62,18 +56,15 @@ export class TransferChatUseCase {
     }
 
     try {
-      // Vérifier que le chat existe
       const chat = await this.chatRepository.findById(request.chatId);
       if (!chat) {
         throw new ChatNotFoundError(request.chatId);
       }
 
-      // Vérifier que le chat a un conseiller assigné
       if (!chat.advisorId) {
         throw new ValidationError('chat', 'Chat has no assigned advisor');
       }
 
-      // Vérifier les permissions de l'utilisateur demandant le transfert
       const isDirector = request.requestingUserRole === 'DIRECTOR';
       const isCurrentAdvisor = chat.advisorId === request.requestingUserId;
 
@@ -81,7 +72,6 @@ export class TransferChatUseCase {
         throw new UnauthorizedChatAccessError(request.chatId, request.requestingUserId);
       }
 
-      // Vérifier que le nouveau conseiller existe et est bien un conseiller
       const newAdvisor = await this.userRepository.findById(request.newAdvisorId);
       if (!newAdvisor) {
         throw new UserNotFoundError(request.newAdvisorId);
@@ -92,10 +82,8 @@ export class TransferChatUseCase {
         throw new InvalidUserRoleError(newAdvisorRole, ['ADVISOR']);
       }
 
-      // Sauvegarder l'ancien conseiller pour la réponse
       const previousAdvisorId = chat.advisorId;
 
-      // Transférer le chat
       const transferResult = chat.transferTo(request.newAdvisorId);
       if (!transferResult.isSuccess()) {
         throw transferResult.getError();
@@ -103,10 +91,8 @@ export class TransferChatUseCase {
 
       const updatedChat = transferResult.getValue();
 
-      // Sauvegarder
       await this.chatRepository.save(updatedChat);
 
-      // Décider qui notifier (logique métier)
       const notifications: TransferChatNotifications = {
         notifyPreviousAdvisor: previousAdvisorId !== null,
         notifyNewAdvisor: true,
