@@ -31,7 +31,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
     try {
       const result = await authService.login(loginData)
-      
+
       if (result.success && result.token) {
         authService.setAuthToken(result.token)
         setSuccess('Login successful!')
@@ -42,7 +42,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       } else {
         setError(result.error || 'Login failed')
       }
-    } catch (error) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -75,7 +75,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 <span className="text-primary-foreground font-prestige font-bold text-2xl">L</span>
               </div>
             </motion.div>
-            
+
             <CardTitle className="text-2xl font-prestige font-bold text-foreground/90">
               Lehman Brothers
             </CardTitle>

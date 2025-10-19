@@ -76,7 +76,7 @@ export default function ClientDashboard() {
         } else {
           setError(response.error || 'Failed to load accounts')
         }
-      } catch (err) {
+      } catch {
         setError('Network error occurred')
       } finally {
         setLoading(false)
@@ -84,7 +84,7 @@ export default function ClientDashboard() {
     }
 
     loadAccounts()
-  }, [])
+  }, [router])
 
   const handleAccountCreated = () => {
     // Reload accounts after creation
