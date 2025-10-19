@@ -7,9 +7,7 @@
 
 import { Button } from '@/components/ui/button'
 import { ArrowRightLeft } from 'lucide-react'
-import { Chat } from '@/services/chatService'
-
-type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error'
+import { Chat, ConnectionStatus } from '@/types/chat'
 
 interface ChatHeaderProps {
   chat: Chat | undefined
@@ -53,10 +51,10 @@ export function ChatHeader({
           <div className="flex items-center space-x-2 mt-1">
             <div
               className={`w-2 h-2 rounded-full ${status === 'connected'
-                  ? 'bg-green-500'
-                  : status === 'connecting'
-                    ? 'bg-yellow-500'
-                    : 'bg-red-500'
+                ? 'bg-green-500'
+                : status === 'connecting'
+                  ? 'bg-yellow-500'
+                  : 'bg-red-500'
                 }`}
             />
             <span className="text-sm text-muted-foreground capitalize">
@@ -74,10 +72,10 @@ export function ChatHeader({
         </div>
         <div className="flex items-center space-x-2">
           <span className={`text-xs px-2 py-1 rounded ${chat.status === 'OPEN'
-              ? 'bg-green-100 text-green-700'
-              : chat.status === 'CLOSED'
-                ? 'bg-gray-100 text-gray-700'
-                : 'bg-blue-100 text-blue-700'
+            ? 'bg-green-100 text-green-700'
+            : chat.status === 'CLOSED'
+              ? 'bg-gray-100 text-gray-700'
+              : 'bg-blue-100 text-blue-700'
             }`}>
             {chat.status}
           </span>

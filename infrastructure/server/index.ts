@@ -18,12 +18,15 @@ import {
   PrismaTransactionRepository,
   PrismaChatRepository,
   PrismaMessageRepository,
-  PrismaMessageReadRepository
+  PrismaMessageReadRepository,
+  PrismaChatViewRepository,
+  PrismaUserViewRepository
 } from './adapters/repositories';
 import {
   JwtAuthenticationService,
   NodemailerEmailService,
-  WsServerService
+  WsServerService,
+  WsChatNotificationService
 } from './adapters/services';
 import {
   RegisterUserUseCase,
@@ -64,12 +67,20 @@ const transactionRepository = new PrismaTransactionRepository(prisma);
 const chatRepository = new PrismaChatRepository(prisma);
 const messageRepository = new PrismaMessageRepository(prisma);
 const messageReadRepository = new PrismaMessageReadRepository(prisma);
+const chatViewRepository = new PrismaChatViewRepository(prisma);
+const userViewRepository = new PrismaUserViewRepository(prisma);
 
 const authenticationService = new JwtAuthenticationService(
   process.env.JWT_SECRET || 'fallback-secret',
   process.env.JWT_EXPIRES_IN || '7d'
 );
 const emailService = new NodemailerEmailService();
+
+// WebSocket Service (instantiated before notification service)
+const wsService = new WsServerService(httpServer, authenticationService, userViewRepository);
+
+// Notification Service (wraps WsService with abstraction)
+const notificationService = new WsChatNotificationService(wsService);
 
 // Auth use cases
 const registerUserUseCase = new RegisterUserUseCase(userRepository, emailConfirmationRepository, emailService);
@@ -83,23 +94,30 @@ const getAccountByIdUseCase = new GetAccountByIdUseCase(accountRepository);
 const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
 
-// Chat use cases
-const createChatUseCase = new CreateChatUseCase(chatRepository, userRepository);
-const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageRepository, userRepository);
+// Chat use cases (now use ChatNotificationService abstraction)
+const createChatUseCase = new CreateChatUseCase(chatRepository, userRepository, chatViewRepository, notificationService);
+const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageRepository, userRepository, userViewRepository, notificationService);
 const getMessagesBeforeUseCase = new GetMessagesBeforeUseCase(messageRepository, chatRepository, messageReadRepository, userRepository);
 const markAsReadUseCase = new MarkAsReadUseCase(messageReadRepository, messageRepository, chatRepository);
 const transferChatUseCase = new TransferChatUseCase(chatRepository, userRepository);
 const setTypingStatusUseCase = new SetTypingStatusUseCase(chatRepository);
 const closeChatUseCase = new CloseChatUseCase(chatRepository);
 
-// WebSocket Service (instantiated before controllers that depend on it)
-const wsService = new WsServerService(httpServer, authenticationService, userRepository);
-
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
 const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase);
-const chatRestController = new ChatRestController(createChatUseCase, getMessagesBeforeUseCase, closeChatUseCase, transferChatUseCase, chatRepository, userRepository, wsService);
+const chatRestController = new ChatRestController(
+  createChatUseCase,
+  getMessagesBeforeUseCase,
+  closeChatUseCase,
+  transferChatUseCase,
+  chatRepository,
+  userRepository,
+  chatViewRepository,
+  userViewRepository,
+  wsService
+);
 
 // WebSocket Controller
 const chatController = new ChatController(
@@ -109,7 +127,8 @@ const chatController = new ChatController(
   markAsReadUseCase,
   setTypingStatusUseCase,
   userRepository,
-  chatRepository
+  chatRepository,
+  userViewRepository
 );
 
 // Routes

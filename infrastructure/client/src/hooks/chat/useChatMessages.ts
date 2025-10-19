@@ -44,9 +44,7 @@ export function useChatMessages({
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  /**
-   * Charge les messages d'un chat
-   */
+  // Charge les messages d'un chat
   const loadMessages = async (chatId: string, reset: boolean = true) => {
     if (!token || !userId) return
 
@@ -105,9 +103,7 @@ export function useChatMessages({
     }
   }
 
-  /**
-   * Charge plus de messages (messages plus anciens)
-   */
+  // Charge plus de messages (messages plus anciens)
   const loadMoreMessages = useCallback(async () => {
     if (!selectedChatId || !token || !userId || !hasMoreMessages || loadingMoreMessages) {
       return
@@ -169,9 +165,7 @@ export function useChatMessages({
     }
   }, [selectedChatId, token, userId, hasMoreMessages, loadingMoreMessages, messages, setMessages])
 
-  /**
-   * Gestionnaire de scroll pour charger plus de messages
-   */
+  // Gestionnaire de scroll pour charger plus de messages
   useEffect(() => {
     const container = messagesContainerRef.current
     if (!container) return
@@ -187,9 +181,7 @@ export function useChatMessages({
     return () => container.removeEventListener('scroll', handleScroll)
   }, [hasMoreMessages, loadingMoreMessages, loadMoreMessages])
 
-  /**
-   * Scroll vers le bas uniquement si l'utilisateur est déjà en bas
-   */
+  // Scroll vers le bas uniquement si l'utilisateur est déjà en bas
   useEffect(() => {
     const container = messagesContainerRef.current
     if (!container) return

@@ -6,7 +6,7 @@
 
 import { useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { Chat } from '@/services/chatService'
+import { Chat } from '@/types/chat'
 
 interface UseGlobalChatEventsProps {
   token: string | null
@@ -39,7 +39,6 @@ export function useGlobalChatEvents({
           const message = JSON.parse(event.data)
 
           if (message.type === 'chat:created') {
-            console.log('[WS Global] New chat created:', message.payload)
             // Ajouter le nouveau chat en haut de la liste (pour advisors et clients)
             const newChat: Chat = {
               id: message.payload.chatId,

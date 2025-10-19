@@ -15,9 +15,7 @@ export interface WsMessage<T = any> {
 
 // ============ Événements Client -> Serveur ============
 
-/**
- * Client rejoint un chat
- */
+// Client rejoint un chat
 export interface JoinChatPayload {
   chatId: string;
 }
@@ -27,9 +25,7 @@ export interface JoinChatMessage extends WsMessage<JoinChatPayload> {
   chatId: string;
 }
 
-/**
- * Client envoie un statut de saisie
- */
+// Client envoie un statut de saisie
 export interface TypingPayload {
   isTyping: boolean;
   userId: string;
@@ -42,9 +38,7 @@ export interface TypingMessage extends WsMessage<TypingPayload> {
   payload: TypingPayload;
 }
 
-/**
- * Client envoie un nouveau message
- */
+// Client envoie un nouveau message
 export interface NewMessagePayload {
   content: string;
   attachmentUrl?: string;
@@ -56,9 +50,7 @@ export interface NewMessageMessage extends WsMessage<NewMessagePayload> {
   payload: NewMessagePayload;
 }
 
-/**
- * Client marque des messages comme lus
- */
+// Client marque des messages comme lus
 export interface MessageReadPayload {
   messageIds: string[];
 }
@@ -71,27 +63,21 @@ export interface MessageReadMessage extends WsMessage<MessageReadPayload> {
 
 // ============ Événements Serveur -> Client ============
 
-/**
- * Serveur confirme qu'un utilisateur rejoint le chat
- */
+// Serveur confirme qu'un utilisateur rejoint le chat
 export interface JoinedChatPayload {
   chatId: string;
   userId: string;
   success: boolean;
 }
 
-/**
- * Serveur broadcast qu'un utilisateur tape
- */
+// Serveur broadcast qu'un utilisateur tape
 export interface UserTypingPayload {
   userId: string;
   userName: string;
   isTyping: boolean;
 }
 
-/**
- * Serveur broadcast un nouveau message
- */
+// Serveur broadcast un nouveau message
 export interface MessageCreatedPayload {
   messageId: string;
   chatId: string;
@@ -103,32 +89,24 @@ export interface MessageCreatedPayload {
   isFirstAdvisorResponse?: boolean;
 }
 
-/**
- * Serveur broadcast qu'un message a été lu
- */
+// Serveur broadcast qu'un message a été lu
 export interface MessageReadBroadcastPayload {
   messageIds: string[];
   userId: string;
   readAt: string; // ISO date string
 }
 
-/**
- * Serveur envoie une erreur
- */
+// Serveur envoie une erreur
 export interface ErrorPayload {
   message: string;
 }
 
-/**
- * Pong en réponse au ping
- */
+// Pong en réponse au ping
 export interface PongMessage extends WsMessage {
   type: 'pong';
 }
 
-/**
- * Serveur notifie les advisors qu'un nouveau chat a été créé
- */
+// Serveur notifie les advisors qu'un nouveau chat a été créé
 export interface ChatCreatedPayload {
   chatId: string;
   subject: string;
@@ -138,9 +116,7 @@ export interface ChatCreatedPayload {
   createdAt: string;
 }
 
-/**
- * Serveur notifie qu'un chat a été mis à jour (advisor assigné, transféré, ou status changé)
- */
+// Serveur notifie qu'un chat a été mis à jour (advisor assigné, transféré, ou status changé)
 export interface ChatUpdatedPayload {
   chatId: string;
   advisorId?: string | null | undefined;
@@ -148,27 +124,21 @@ export interface ChatUpdatedPayload {
   status?: string;
 }
 
-/**
- * Ping/Pong pour keep-alive
- */
+// Ping/Pong pour keep-alive
 export interface PongMessage extends WsMessage {
   type: 'pong';
 }
 
 // ============ Types utilitaires ============
 
-/**
- * Union de tous les messages client -> serveur
- */
+// Union de tous les messages client -> serveur
 export type ClientMessage =
   | JoinChatMessage
   | TypingMessage
   | NewMessageMessage
   | MessageReadMessage;
 
-/**
- * Union de tous les messages serveur -> client
- */
+// Union de tous les messages serveur -> client
 export type ServerMessage = WsMessage<
   | JoinedChatPayload
   | UserTypingPayload
@@ -180,9 +150,7 @@ export type ServerMessage = WsMessage<
   | undefined
 >;
 
-/**
- * Données utilisateur extraites du token JWT
- */
+// Données utilisateur extraites du token JWT
 export interface WsUserContext {
   userId: string;
   userName: string;

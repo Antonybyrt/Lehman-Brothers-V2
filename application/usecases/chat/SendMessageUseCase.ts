@@ -1,5 +1,6 @@
 import { Chat, Message } from '@lehman-brothers/domain';
-import { ChatRepository, MessageRepository, UserRepository } from '../../repositories';
+import { ChatRepository, MessageRepository, UserRepository, UserViewRepository } from '../../repositories';
+import { ChatNotificationService } from '../../services';
 import {
   ChatNotFoundError,
   UserNotFoundError,
@@ -33,12 +34,15 @@ export interface SendMessageResponse {
  * - Vérifie que l'auteur existe
  * - Si c'est la première réponse d'un conseiller, assigne le conseiller au chat
  * - Crée et sauvegarde le message
+ * - Envoie les notifications appropriées aux participants
  */
 export class SendMessageUseCase {
   constructor(
     private readonly chatRepository: ChatRepository,
     private readonly messageRepository: MessageRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly userViewRepository: UserViewRepository,
+    private readonly notificationService: ChatNotificationService
   ) { }
 
   async execute(request: SendMessageRequest): Promise<SendMessageResponse> {
@@ -103,6 +107,36 @@ export class SendMessageUseCase {
 
       // Sauvegarder le message
       await this.messageRepository.save(message);
+
+      // Envoyer les notifications (logique métier dans le Use Case)
+      const authorView = await this.userViewRepository.findByIdAsView(request.authorId);
+      const authorName = authorView?.fullName || 'Unknown';
+
+      const messagePayload = {
+        chatId: chat.id,
+        message: {
+          id: message.id,
+          content: message.content,
+          authorId: request.authorId,
+          authorName,
+          createdAt: message.sentAt.toISOString(),
+        },
+      };
+
+      // ✅ Envoyer à tous les participants du chat (via la room)
+      // Cela évite les doublons si un utilisateur a plusieurs connexions WebSocket
+      await this.notificationService.notifyChat(chat.id, 'message:created', messagePayload);
+
+      // Si c'est la première réponse d'un advisor, notifier le client de l'assignation
+      if (isFirstAdvisorResponse) {
+        const chatUpdatePayload = {
+          chatId: chat.id,
+          advisorId: request.authorId,
+          advisorName: authorName,
+          status: chat.status,
+        };
+        await this.notificationService.notifyUser(chat.clientId, 'chat:updated', chatUpdatePayload);
+      }
 
       return {
         success: true,

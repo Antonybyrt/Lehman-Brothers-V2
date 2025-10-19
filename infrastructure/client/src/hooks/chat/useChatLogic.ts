@@ -12,16 +12,13 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { chatService, Chat } from '@/services/chatService'
+import { chatService } from '@/services/chatService'
 import { useChatSocket } from '@/hooks/chat/useChatSocket'
 import { useGlobalChatEvents } from '@/hooks/chat/useGlobalChatEvents'
 import { useChatMessages } from '@/hooks/chat/useChatMessages'
-import { DisplayMessage } from '@/types/chat'
+import { Chat, DisplayMessage, ChatTab } from '@/types/chat'
 import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
-
-export type ChatTab = 'OPEN' | 'CLOSED'
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
 export function useChatLogic() {
   // ========== Utiliser le contexte d'authentification ==========
@@ -55,26 +52,30 @@ export function useChatLogic() {
 
   // ========== Handlers WebSocket ==========
   const handleNewMessage = useCallback((payload: {
-    messageId: string
-    authorId: string
-    authorName: string
-    content: string
-    sentAt: string
+    chatId: string
+    message: {
+      id: string
+      content: string
+      authorId: string
+      authorName: string
+      createdAt: string
+    }
   }) => {
     if (!userId) return
+
     const newMessage: DisplayMessage = {
-      id: payload.messageId,
-      authorId: payload.authorId,
-      authorName: payload.authorName,
-      content: payload.content,
-      sentAt: new Date(payload.sentAt),
+      id: payload.message.id,
+      authorId: payload.message.authorId,
+      authorName: payload.message.authorName,
+      content: payload.message.content,
+      sentAt: new Date(payload.message.createdAt),
       isRead: false,
     }
     setMessages((prev) => [...prev, newMessage])
     // Marque comme lu après un court délai si ce n'est pas notre message
-    if (payload.authorId !== userId && markAsReadRef.current) {
+    if (payload.message.authorId !== userId && markAsReadRef.current) {
       setTimeout(() => {
-        markAsReadRef.current?.([payload.messageId])
+        markAsReadRef.current?.([payload.message.id])
       }, 1000)
     }
   }, [userId])

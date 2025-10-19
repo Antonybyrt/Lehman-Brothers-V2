@@ -1,7 +1,7 @@
 import { Server as HttpServer } from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
 import { IncomingMessage } from 'http';
-import { AuthenticationService, UserRepository } from '@lehman-brothers/application';
+import { AuthenticationService, UserViewRepository } from '@lehman-brothers/application';
 import {
   WsMessage,
   WsUserContext,
@@ -10,9 +10,7 @@ import {
   ErrorPayload,
 } from '../../ws/types';
 
-/**
- * Interface pour une connexion WebSocket enrichie avec le contexte utilisateur
- */
+// Interface pour une connexion WebSocket enrichie avec le contexte utilisateur
 interface AuthenticatedWebSocket extends WebSocket {
   userId?: string;
   userName?: string;
@@ -40,16 +38,14 @@ export class WsServerService {
   constructor(
     private readonly httpServer: HttpServer,
     private readonly authService: AuthenticationService,
-    private readonly userRepository: UserRepository
+    private readonly userViewRepository: UserViewRepository
   ) {
     this.rooms = new Map();
     this.wss = new WebSocketServer({ noServer: true });
     this.setupWebSocketServer();
   }
 
-  /**
-   * Configure le serveur WebSocket
-   */
+  // Configure le serveur WebSocket
   private setupWebSocketServer(): void {
     // Gérer les upgrades HTTP vers WebSocket
     this.httpServer.on('upgrade', async (request: IncomingMessage, socket, head) => {
@@ -78,9 +74,7 @@ export class WsServerService {
     this.startPingPong();
   }
 
-  /**
- * Authentifie un utilisateur à partir d'un token dans l'URL ou les headers
- */
+  // Authentifie un utilisateur à partir d'un token dans l'URL ou les headers
   private async authenticateUser(request: IncomingMessage): Promise<WsUserContext | null> {
     try {
       const url = new URL(request.url || '', `http://${request.headers.host}`);
@@ -96,13 +90,12 @@ export class WsServerService {
       }
 
       // Récupérer le nom de l'utilisateur depuis la base de données
-      const user = await this.userRepository.findById(decoded.userId);
+      const userView = await this.userViewRepository.findByIdAsView(decoded.userId);
       let userName = decoded.userId; // Fallback sur l'ID si on ne trouve pas l'utilisateur
 
-      if (user) {
-        // Construire le nom complet
-        const fullName = `${user.getFirstName()} ${user.getLastName()}`.trim();
-        userName = fullName || user.getEmail().getValue();
+      if (userView) {
+        // Utiliser le nom complet formaté
+        userName = userView.fullName || userView.email;
       }
 
       return {
@@ -115,9 +108,7 @@ export class WsServerService {
     }
   }
 
-  /**
-   * Configure les handlers pour une connexion WebSocket
-   */
+  // Configure les handlers pour une connexion WebSocket
   onConnection(
     handler: (
       ws: AuthenticatedWebSocket,
@@ -162,9 +153,7 @@ export class WsServerService {
     });
   }
 
-  /**
-   * Ajoute un client à une room (chat)
-   */
+  // Ajoute un client à une room (chat)
   joinRoom(chatId: string, ws: AuthenticatedWebSocket): void {
     if (!this.rooms.has(chatId)) {
       this.rooms.set(chatId, new Set());
@@ -172,9 +161,7 @@ export class WsServerService {
     this.rooms.get(chatId)!.add(ws);
   }
 
-  /**
-   * Retire un client d'une room
-   */
+  // Retire un client d'une room
   leaveRoom(chatId: string, ws: AuthenticatedWebSocket): void {
     const room = this.rooms.get(chatId);
     if (room) {
@@ -185,9 +172,7 @@ export class WsServerService {
     }
   }
 
-  /**
-   * Retire un client de toutes les rooms
-   */
+  // Retire un client de toutes les rooms
   private removeFromAllRooms(ws: AuthenticatedWebSocket): void {
     this.rooms.forEach((room, chatId) => {
       if (room.has(ws)) {
@@ -196,9 +181,7 @@ export class WsServerService {
     });
   }
 
-  /**
-   * Broadcast un message à tous les clients d'une room sauf l'émetteur
-   */
+  // Broadcast un message à tous les clients d'une room sauf l'émetteur
   broadcastToRoom(
     chatId: string,
     message: ServerMessage,
@@ -218,9 +201,7 @@ export class WsServerService {
     });
   }
 
-  /**
-   * Envoie un message à tous les clients d'une room (y compris l'émetteur)
-   */
+  // Envoie un message à tous les clients d'une room (y compris l'émetteur)
   sendToRoom(chatId: string, message: ServerMessage): void {
     const room = this.rooms.get(chatId);
     if (!room) {
@@ -236,18 +217,14 @@ export class WsServerService {
     });
   }
 
-  /**
-   * Envoie un message à un client spécifique
-   */
+  // Envoie un message à un client spécifique
   sendToClient(ws: AuthenticatedWebSocket, message: ServerMessage): void {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(message));
     }
   }
 
-  /**
-   * Broadcast un message à tous les utilisateurs avec un rôle spécifique
-   */
+  // Broadcast un message à tous les utilisateurs avec un rôle spécifique
   broadcastToRole(role: string, message: ServerMessage): void {
     const messageStr = JSON.stringify(message);
 
@@ -259,9 +236,7 @@ export class WsServerService {
     });
   }
 
-  /**
-   * Broadcast un message à un utilisateur spécifique par son userId
-   */
+  // Broadcast un message à un utilisateur spécifique par son userId
   broadcastToUser(userId: string, message: ServerMessage): void {
     const messageStr = JSON.stringify(message);
 
@@ -273,9 +248,7 @@ export class WsServerService {
     });
   }
 
-  /**
-   * Envoie une erreur à un client
-   */
+  // Envoie une erreur à un client
   sendError(ws: AuthenticatedWebSocket, errorMessage: string, code?: string): void {
     this.sendToClient(ws, {
       type: 'error',
@@ -285,9 +258,7 @@ export class WsServerService {
     });
   }
 
-  /**
-   * Démarre le mécanisme de ping/pong pour détecter les connexions mortes
-   */
+  // Démarre le mécanisme de ping/pong pour détecter les connexions mortes
   private startPingPong(): void {
     this.pingInterval = setInterval(() => {
       this.wss.clients.forEach((ws: AuthenticatedWebSocket) => {
@@ -301,9 +272,7 @@ export class WsServerService {
     }, 60000); // Ping toutes les 60 secondes (augmenté pour éviter les faux positifs)
   }
 
-  /**
-   * Arrête le serveur WebSocket proprement
-   */
+  // Arrête le serveur WebSocket proprement
   close(): void {
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
@@ -316,16 +285,12 @@ export class WsServerService {
     this.wss.close();
   }
 
-  /**
-   * Retourne le nombre de clients connectés à une room
-   */
+  // Retourne le nombre de clients connectés à une room
   getRoomSize(chatId: string): number {
     return this.rooms.get(chatId)?.size || 0;
   }
 
-  /**
-   * Retourne la liste des chatIds actifs
-   */
+  // Retourne la liste des chatIds actifs
   getActiveRooms(): string[] {
     return Array.from(this.rooms.keys());
   }

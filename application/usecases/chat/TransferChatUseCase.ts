@@ -16,6 +16,16 @@ export interface TransferChatRequest {
   readonly requestingUserRole: string;
 }
 
+export interface TransferChatNotifications {
+  readonly notifyPreviousAdvisor: boolean;
+  readonly notifyNewAdvisor: boolean;
+  readonly notifyClient: boolean;
+  readonly previousAdvisorId?: string;
+  readonly newAdvisorId: string;
+  readonly clientId: string;
+  readonly chatId: string;
+}
+
 export interface TransferChatResponse {
   readonly success: boolean;
   readonly chatId?: string;
@@ -23,6 +33,7 @@ export interface TransferChatResponse {
   readonly newAdvisorId?: string;
   readonly error?: string;
   readonly errorType?: 'validation' | 'not_found' | 'unauthorized' | 'server';
+  readonly notifications?: TransferChatNotifications;
 }
 
 /**
@@ -95,11 +106,23 @@ export class TransferChatUseCase {
       // Sauvegarder
       await this.chatRepository.save(updatedChat);
 
+      // Décider qui notifier (logique métier)
+      const notifications: TransferChatNotifications = {
+        notifyPreviousAdvisor: previousAdvisorId !== null,
+        notifyNewAdvisor: true,
+        notifyClient: true,
+        ...(previousAdvisorId && { previousAdvisorId }),
+        newAdvisorId: request.newAdvisorId,
+        clientId: updatedChat.clientId,
+        chatId: updatedChat.id,
+      };
+
       return {
         success: true,
         chatId: updatedChat.id,
-        previousAdvisorId,
+        ...(previousAdvisorId && { previousAdvisorId }),
         newAdvisorId: request.newAdvisorId,
+        notifications,
       };
     } catch (error) {
       if (error instanceof ChatNotFoundError || error instanceof UserNotFoundError) {

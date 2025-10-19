@@ -101,11 +101,6 @@ export class MarkAsReadUseCase {
 
       // Marquer les messages comme lus
       if (unreadMessageIds.length > 0) {
-        console.log('[MarkAsReadUseCase] Marking messages as read:', {
-          userId: request.userId,
-          messageIds: unreadMessageIds,
-          count: unreadMessageIds.length
-        });
         await this.messageReadRepository.markMultipleAsRead(unreadMessageIds, request.userId);
       }
 

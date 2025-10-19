@@ -7,7 +7,12 @@ import {
 } from '@lehman-brothers/application';
 import { exhaustive } from 'exhaustive';
 import { AuthenticatedRequest } from '../../middleware/authMiddleware';
-import { ChatRepository, UserRepository } from '@lehman-brothers/application';
+import {
+  ChatRepository,
+  UserRepository,
+  ChatViewRepository,
+  UserViewRepository
+} from '@lehman-brothers/application';
 import { WsServerService } from '../services/WsServerService';
 
 export class ChatRestController {
@@ -18,6 +23,8 @@ export class ChatRestController {
     private readonly transferChatUseCase: TransferChatUseCase,
     private readonly chatRepository: ChatRepository,
     private readonly userRepository: UserRepository,
+    private readonly chatViewRepository: ChatViewRepository,
+    private readonly userViewRepository: UserViewRepository,
     private readonly wsServerService: WsServerService
   ) { }
 
@@ -54,47 +61,8 @@ export class ChatRestController {
 
     exhaustive(String(result.success), {
       'true': async () => {
-        // Get client name for broadcasting (use actualClientId, not userId)
-        const client = await this.userRepository.findById(actualClientId);
-        const clientName = client ? `${client.getFirstName()} ${client.getLastName()}`.trim() : undefined;
-
-        if (result.chatId) {
-          // Get the created chat to have all details including advisorId
-          const createdChat = await this.chatRepository.findById(result.chatId);
-
-          // Get advisor name if chat has an advisor assigned
-          let advisorName: string | undefined;
-          if (createdChat?.advisorId) {
-            const advisor = await this.userRepository.findById(createdChat.advisorId);
-            advisorName = advisor ? `${advisor.getFirstName()} ${advisor.getLastName()}`.trim() : undefined;
-          }
-
-          const chatPayload = {
-            chatId: result.chatId,
-            subject: result.subject || '',
-            clientId: actualClientId,
-            clientName: clientName,
-            advisorId: createdChat?.advisorId || null,
-            advisorName: advisorName || null,
-            status: 'OPEN',
-            createdAt: new Date().toISOString()
-          };
-
-          // Broadcast to all advisors that a new chat has been created
-          this.wsServerService.broadcastToRole('ADVISOR', {
-            type: 'chat:created',
-            payload: chatPayload
-          });
-
-          // If an advisor created the chat for a client, notify the client too
-          if (userRole === 'ADVISOR' && actualClientId !== userId) {
-            this.wsServerService.broadcastToUser(actualClientId, {
-              type: 'chat:created',
-              payload: chatPayload
-            });
-          }
-        }
-
+        // Le Use Case gère maintenant les notifications directement
+        // Le Controller se concentre uniquement sur la réponse HTTP
         res.status(201).json({
           success: true,
           chatId: result.chatId,
@@ -157,15 +125,13 @@ export class ChatRestController {
 
       // Transform chats to response format with user names
       const chatsData = await Promise.all(chats.map(async (chat) => {
-        // Fetch client name
-        const client = await this.userRepository.findById(chat.clientId);
-        const clientName = client ? client.getFullName() : 'Unknown Client';
+        // Fetch client name via UserViewRepository
+        const clientName = await this.userViewRepository.getFullNameById(chat.clientId) || 'Unknown Client';
 
         // Fetch advisor name if assigned
         let advisorName: string | undefined;
         if (chat.advisorId) {
-          const advisor = await this.userRepository.findById(chat.advisorId);
-          advisorName = advisor ? advisor.getFullName() : 'Unknown Advisor';
+          advisorName = await this.userViewRepository.getFullNameById(chat.advisorId) || 'Unknown Advisor';
         }
 
         return {
@@ -390,27 +356,28 @@ export class ChatRestController {
 
     exhaustive(String(result.success), {
       'true': async () => {
-        // Broadcast chat status update to all participants
-        const chat = await this.chatRepository.findById(chatId);
-        if (chat && chat.clientId) {
-          // Notify client
-          this.wsServerService.broadcastToUser(chat.clientId, {
-            type: 'chat:updated',
-            payload: {
-              chatId,
-              status: 'CLOSED',
-            }
-          });
-        }
-        if (chat && chat.advisorId) {
-          // Notify advisor
-          this.wsServerService.broadcastToUser(chat.advisorId, {
-            type: 'chat:updated',
-            payload: {
-              chatId,
-              status: 'CLOSED',
-            }
-          });
+        // Utiliser les notifications décidées par le Use Case
+        if (result.notifications) {
+          const chatPayload = {
+            chatId,
+            status: 'CLOSED',
+          };
+
+          // Notifier le client si nécessaire
+          if (result.notifications.notifyClient) {
+            this.wsServerService.broadcastToUser(result.notifications.clientId, {
+              type: 'chat:updated',
+              payload: chatPayload
+            });
+          }
+
+          // Notifier l'advisor si nécessaire
+          if (result.notifications.notifyAdvisor && result.notifications.advisorId) {
+            this.wsServerService.broadcastToUser(result.notifications.advisorId, {
+              type: 'chat:updated',
+              payload: chatPayload
+            });
+          }
         }
 
         res.status(200).json({
@@ -478,54 +445,47 @@ export class ChatRestController {
 
     exhaustive(String(result.success), {
       'true': async () => {
-        // Get chat and new advisor info
-        const chat = await this.chatRepository.findById(chatId);
-        const newAdvisor = await this.userRepository.findById(newAdvisorId);
-        const newAdvisorName = newAdvisor ? `${newAdvisor.getFirstName()} ${newAdvisor.getLastName()}` : undefined;
+        // Utiliser le ChatViewRepository pour obtenir les données enrichies
+        const chatView = await this.chatViewRepository.findByIdWithNames(chatId);
 
-        // Get client info
-        const client = chat?.clientId ? await this.userRepository.findById(chat.clientId) : null;
-        const clientName = client ? `${client.getFirstName()} ${client.getLastName()}` : undefined;
+        if (chatView) {
+          const chatPayload = {
+            chatId: chatView.id,
+            subject: chatView.subject,
+            clientId: chatView.clientId,
+            clientName: chatView.clientName,
+            advisorId: chatView.advisorId,
+            advisorName: chatView.advisorName,
+            status: chatView.status,
+            createdAt: chatView.createdAt.toISOString(),
+          };
 
-        // Broadcast to client
-        if (chat && chat.clientId) {
-          this.wsServerService.broadcastToUser(chat.clientId, {
-            type: 'chat:updated',
-            payload: {
-              chatId,
-              advisorId: newAdvisorId,
-              advisorName: newAdvisorName,
+          // Utiliser les notifications décidées par le Use Case
+          if (result.notifications) {
+            // Notifier le client si nécessaire
+            if (result.notifications.notifyClient) {
+              this.wsServerService.broadcastToUser(result.notifications.clientId, {
+                type: 'chat:updated',
+                payload: chatPayload
+              });
             }
-          });
-        }
 
-        // Broadcast to previous advisor (chat removed from their list)
-        if (result.previousAdvisorId) {
-          this.wsServerService.broadcastToUser(result.previousAdvisorId, {
-            type: 'chat:updated',
-            payload: {
-              chatId,
-              advisorId: newAdvisorId,
-              advisorName: newAdvisorName,
+            // Notifier l'ancien advisor si nécessaire
+            if (result.notifications.notifyPreviousAdvisor && result.notifications.previousAdvisorId) {
+              this.wsServerService.broadcastToUser(result.notifications.previousAdvisorId, {
+                type: 'chat:updated',
+                payload: chatPayload
+              });
             }
-          });
-        }
 
-        // Broadcast to new advisor (with full chat info so they can add it to their list)
-        if (chat) {
-          this.wsServerService.broadcastToUser(newAdvisorId, {
-            type: 'chat:updated',
-            payload: {
-              chatId,
-              subject: chat.subject,
-              clientId: chat.clientId,
-              clientName,
-              advisorId: newAdvisorId,
-              advisorName: newAdvisorName,
-              status: chat.status,
-              createdAt: chat.createdAt.toISOString(),
+            // Notifier le nouvel advisor si nécessaire
+            if (result.notifications.notifyNewAdvisor) {
+              this.wsServerService.broadcastToUser(result.notifications.newAdvisorId, {
+                type: 'chat:updated',
+                payload: chatPayload
+              });
             }
-          });
+          }
         }
 
         res.status(200).json({

@@ -1,5 +1,6 @@
 import { Chat } from '@lehman-brothers/domain';
-import { ChatRepository, UserRepository } from '../../repositories';
+import { ChatRepository, UserRepository, ChatViewRepository } from '../../repositories';
+import { ChatNotificationService } from '../../services';
 import { UserNotFoundError, InvalidUserRoleError, ValidationError } from '@lehman-brothers/domain';
 import { exhaustive } from 'exhaustive';
 
@@ -25,11 +26,14 @@ export interface CreateChatResponse {
  * - Vérifie que l'utilisateur existe et est un client
  * - Crée un nouveau chat avec le sujet spécifié
  * - Le chat est créé avec le statut OPEN et sans conseiller assigné
+ * - Envoie les notifications appropriées (advisors, client si créé par advisor)
  */
 export class CreateChatUseCase {
   constructor(
     private readonly chatRepository: ChatRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly chatViewRepository: ChatViewRepository,
+    private readonly notificationService: ChatNotificationService
   ) { }
 
   async execute(request: CreateChatRequest): Promise<CreateChatResponse> {
@@ -80,6 +84,31 @@ export class CreateChatUseCase {
 
       // Sauvegarder le chat
       await this.chatRepository.save(chat);
+
+      // Récupérer les données enrichies pour la notification
+      const chatView = await this.chatViewRepository.findByIdWithNames(chat.id);
+
+      if (chatView) {
+        // Envoyer les notifications (logique métier dans le Use Case)
+        const chatPayload = {
+          chatId: chatView.id,
+          subject: chatView.subject,
+          clientId: chatView.clientId,
+          clientName: chatView.clientName,
+          advisorId: chatView.advisorId || undefined,
+          advisorName: chatView.advisorName || undefined,
+          status: chatView.status,
+        };
+
+        // Toujours notifier tous les advisors des nouveaux chats
+        await this.notificationService.notifyRole('ADVISOR', 'chat:created', chatPayload);
+
+        // Notifier le client si le chat a été créé par un advisor
+        const shouldNotifyClient = request.creatorRole === 'ADVISOR' || request.creatorRole === 'DIRECTOR';
+        if (shouldNotifyClient) {
+          await this.notificationService.notifyUser(chat.clientId, 'chat:created', chatPayload);
+        }
+      }
 
       return {
         success: true,

@@ -1,14 +1,10 @@
 import { Message } from '@lehman-brothers/domain';
 
 export interface MessageRepository {
-  /**
-   * Sauvegarde ou met à jour un message
-   */
+  // Sauvegarde ou met à jour un message
   save(message: Message): Promise<void>;
 
-  /**
-   * Trouve un message par son ID
-   */
+  // Trouve un message par son ID
   findById(id: string): Promise<Message | null>;
 
   /**
@@ -23,13 +19,9 @@ export interface MessageRepository {
     beforeId?: string
   ): Promise<Message[]>;
 
-  /**
-   * Compte le nombre de messages dans un chat
-   */
+  // Compte le nombre de messages dans un chat
   countByChatId(chatId: string): Promise<number>;
 
-  /**
-   * Supprime un message (hard delete)
-   */
+  // Supprime un message (hard delete)
   delete(id: string): Promise<void>;
 }

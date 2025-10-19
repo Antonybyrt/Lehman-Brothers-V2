@@ -1,31 +1,9 @@
 import axios from 'axios';
+import { Chat, ChatMessage } from '@/types/chat';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export interface Chat {
-  id: string;
-  subject: string;
-  clientId: string;
-  clientName?: string;
-  advisorId: string | null;
-  advisorName?: string;
-  status: 'OPEN' | 'TRANSFERRED' | 'CLOSED';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  chatId: string;
-  authorId: string;
-  authorName: string;
-  content: string;
-  attachmentUrl: string | null;
-  sentAt: string;
-  editedAt: string | null;
-  deletedAt: string | null;
-  isRead: boolean;
-}
+// Interfaces spécifiques au service (requêtes/réponses API)
 
 export interface CreateChatRequest {
   subject: string;
@@ -74,9 +52,7 @@ class ChatService {
     delete this.api.defaults.headers.common['Authorization'];
   }
 
-  /**
-   * Create a new chat
-   */
+  // Create a new chat
   async createChat(data: CreateChatRequest): Promise<CreateChatResponse> {
     try {
       const response = await this.api.post<CreateChatResponse>('/chats', data);
@@ -95,9 +71,7 @@ class ChatService {
     }
   }
 
-  /**
-   * Get all chats for the authenticated user
-   */
+  // Get all chats for the authenticated user
   async getUserChats(): Promise<GetChatsResponse> {
     try {
       const response = await this.api.get<GetChatsResponse>('/chats');
@@ -116,9 +90,7 @@ class ChatService {
     }
   }
 
-  /**
-   * Get a specific chat by ID
-   */
+  // Get a specific chat by ID
   async getChatById(chatId: string): Promise<GetChatByIdResponse> {
     try {
       const response = await this.api.get<GetChatByIdResponse>(`/chats/${chatId}`);
@@ -137,9 +109,7 @@ class ChatService {
     }
   }
 
-  /**
-   * Get messages for a specific chat
-   */
+  // Get messages for a specific chat
   async getChatMessages(
     chatId: string,
     options?: { beforeId?: string; limit?: number }

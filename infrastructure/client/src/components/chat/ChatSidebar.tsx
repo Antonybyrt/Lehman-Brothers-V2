@@ -7,7 +7,7 @@
 
 import { Button } from '@/components/ui/button'
 import { MessageSquare, Plus, UserCircle, Loader2 } from 'lucide-react'
-import { Chat } from '@/services/chatService'
+import { Chat } from '@/types/chat'
 
 interface ChatSidebarProps {
   chats: Chat[]
@@ -51,8 +51,8 @@ export function ChatSidebar({
           <button
             onClick={() => onTabChange('OPEN')}
             className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-all ${activeTab === 'OPEN'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
               }`}
           >
             Open
@@ -60,8 +60,8 @@ export function ChatSidebar({
           <button
             onClick={() => onTabChange('CLOSED')}
             className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-all ${activeTab === 'CLOSED'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
               }`}
           >
             Closed

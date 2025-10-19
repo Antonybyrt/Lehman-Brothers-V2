@@ -6,7 +6,11 @@ import {
   MarkAsReadUseCase,
   SetTypingStatusUseCase,
 } from '@lehman-brothers/application/usecases/chat';
-import { UserRepository, ChatRepository } from '@lehman-brothers/application';
+import {
+  UserRepository,
+  ChatRepository,
+  UserViewRepository
+} from '@lehman-brothers/application';
 import {
   ClientMessage,
   WsUserContext,
@@ -21,7 +25,7 @@ import {
  * 
  * Responsabilités:
  * - Router les événements WebSocket vers les use cases appropriés
- * - Broadcaster les événements aux clients connectés
+ * - Broadcaster les événements (selon les instructions des use cases)
  * - Gérer les erreurs et les envoyer au client
  */
 export class ChatController {
@@ -32,14 +36,13 @@ export class ChatController {
     private readonly markAsReadUseCase: MarkAsReadUseCase,
     private readonly setTypingStatusUseCase: SetTypingStatusUseCase,
     private readonly userRepository: UserRepository,
-    private readonly chatRepository: ChatRepository
+    private readonly chatRepository: ChatRepository,
+    private readonly userViewRepository: UserViewRepository
   ) {
     this.setupHandlers();
   }
 
-  /**
-   * Configure les handlers pour les différents types d'événements
-   */
+  // Configure les handlers pour les différents types d'événements
   private setupHandlers(): void {
     this.wsService.onConnection(async (ws, message, userContext) => {
       try {
@@ -71,9 +74,7 @@ export class ChatController {
     });
   }
 
-  /**
-   * Gère l'événement 'join' - Un utilisateur rejoint un chat
-   */
+  // Gère l'événement 'join' - Un utilisateur rejoint un chat
   private async handleJoin(
     ws: WebSocket,
     message: JoinChatMessage,
@@ -110,9 +111,7 @@ export class ChatController {
     });
   }
 
-  /**
-   * Gère l'événement 'typing' - Un utilisateur est en train de taper
-   */
+  // Gère l'événement 'typing' - Un utilisateur est en train de taper
   private async handleTyping(
     ws: WebSocket,
     message: TypingMessage,
@@ -149,9 +148,7 @@ export class ChatController {
     );
   }
 
-  /**
-   * Gère l'événement 'message:new' - Un nouveau message est envoyé
-   */
+  // Gère l'événement 'message:new' - Un nouveau message est envoyé
   private async handleNewMessage(
     ws: WebSocket,
     message: NewMessageMessage,
@@ -179,15 +176,11 @@ export class ChatController {
       return;
     }
 
-    // Récupérer le nom de l'auteur
-    const author = await this.userRepository.findById(userContext.userId);
-    const authorName = author ? author.getFullName() : userContext.userName;
+    // Récupérer le nom de l'auteur via UserViewRepository
+    const authorName = await this.userViewRepository.getFullNameById(userContext.userId) || userContext.userName;
 
     // Si c'est la première réponse d'un advisor, broadcaster l'assignation
     if (result.isFirstAdvisorResponse) {
-      const chat = await this.chatRepository.findById(chatId);
-
-      // Broadcaster à tous les advisors
       this.wsService.broadcastToRole('ADVISOR', {
         type: 'chat:updated',
         payload: {
@@ -197,7 +190,8 @@ export class ChatController {
         }
       });
 
-      // Broadcaster au client
+      // Broadcaster aussi au client concerné
+      const chat = await this.chatRepository.findById(chatId);
       if (chat && chat.clientId) {
         this.wsService.broadcastToUser(chat.clientId, {
           type: 'chat:updated',
@@ -214,57 +208,15 @@ export class ChatController {
       );
     }
 
-    // Broadcaster le nouveau message à toute la room (y compris l'émetteur)
-    this.wsService.sendToRoom(chatId, {
-      type: 'message:new',
-      chatId,
-      payload: {
-        messageId: result.messageId!,
-        chatId: result.chatId!,
-        authorId: userContext.userId,
-        authorName,
-        content: payload.content,
-        attachmentUrl: payload.attachmentUrl || null,
-        sentAt: new Date().toISOString(),
-        isFirstAdvisorResponse: result.isFirstAdvisorResponse || false,
-      },
-    });
-
-    // Notifier globalement pour mettre à jour les compteurs de messages en attente
-    const chat = await this.chatRepository.findById(chatId);
-    if (chat) {
-      // Notifier l'émetteur (pour qu'il mette à jour son propre compteur)
-      this.wsService.broadcastToUser(userContext.userId, {
-        type: 'message:created',
-        payload: {
-          chatId,
-          authorId: userContext.userId,
-          messageId: result.messageId!,
-        }
-      });
-
-      // Notifier l'autre partie (si c'est un client qui écrit, notifier l'advisor et vice-versa)
-      const recipientId = userContext.userId === chat.clientId ? chat.advisorId : chat.clientId;
-      if (recipientId) {
-        this.wsService.broadcastToUser(recipientId, {
-          type: 'message:created',
-          payload: {
-            chatId,
-            authorId: userContext.userId,
-            messageId: result.messageId!,
-          }
-        });
-      }
-    }
+    // ✅ Le Use Case gère maintenant TOUTES les notifications directement via ChatNotificationService
+    // Le Controller ne doit PAS renvoyer de notification pour éviter les doublons
 
     console.log(
       `[ChatController] New message in chat ${chatId} from ${userContext.userId}`
     );
   }
 
-  /**
-   * Gère l'événement 'message:read' - Un utilisateur marque des messages comme lus
-   */
+  // Gère l'événement 'message:read' - Un utilisateur marque des messages comme lus
   private async handleMessageRead(
     ws: WebSocket,
     message: MessageReadMessage,

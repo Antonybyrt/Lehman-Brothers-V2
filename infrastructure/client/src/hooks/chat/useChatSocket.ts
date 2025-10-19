@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-/**
- * Types pour le protocole WebSocket du chat
- */
-export type WsEventType = 'join' | 'typing' | 'message:new' | 'message:read' | 'error' | 'pong';
+// Types pour le protocole WebSocket du chat
+export type WsEventType = 'join' | 'typing' | 'message:created' | 'message:read' | 'error' | 'pong';
 
 export interface WsMessage<T = unknown> {
   type: WsEventType;
@@ -17,14 +15,14 @@ export interface ErrorPayload {
 }
 
 export interface MessageCreatedPayload {
-  messageId: string;
   chatId: string;
-  authorId: string;
-  authorName: string;
-  content: string;
-  attachmentUrl: string | null;
-  sentAt: string;
-  isFirstAdvisorResponse?: boolean;
+  message: {
+    id: string;
+    content: string;
+    authorId: string;
+    authorName: string;
+    createdAt: string;
+  };
 }
 
 export interface UserTypingPayload {
@@ -45,9 +43,7 @@ export interface JoinedChatPayload {
   success: boolean;
 }
 
-/**
- * Options pour le hook useChatSocket
- */
+// Options pour le hook useChatSocket
 interface UseChatSocketOptions {
   chatId: string;
   token: string;
@@ -59,9 +55,7 @@ interface UseChatSocketOptions {
   reconnectDelay?: number;
 }
 
-/**
- * État de connexion WebSocket
- */
+// État de connexion WebSocket
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
 /**
@@ -108,9 +102,7 @@ export const useChatSocket = (options: UseChatSocketOptions) => {
   const isMountedRef = useRef(true);
   const maxReconnectAttempts = 5;
 
-  /**
-   * Établit la connexion WebSocket
-   */
+  // Établit la connexion WebSocket
   const connect = useCallback(() => {
     // Don't connect if component is unmounted
     if (!isMountedRef.current) {
@@ -148,7 +140,7 @@ export const useChatSocket = (options: UseChatSocketOptions) => {
           const message: WsMessage = JSON.parse(event.data);
 
           switch (message.type) {
-            case 'message:new':
+            case 'message:created':
               onMessage?.(message.payload as MessageCreatedPayload);
               break;
 
@@ -216,9 +208,7 @@ export const useChatSocket = (options: UseChatSocketOptions) => {
     }
   }, [chatId, token, autoReconnect, reconnectDelay, onMessage, onTyping, onMessageRead, onError]);
 
-  /**
-   * Envoie un nouveau message
-   */
+  // Envoie un nouveau message
   const sendMessage = useCallback(
     (content: string, attachmentUrl?: string) => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
@@ -240,9 +230,7 @@ export const useChatSocket = (options: UseChatSocketOptions) => {
     [chatId]
   );
 
-  /**
-   * Définit le statut de saisie
-   */
+  // Définit le statut de saisie
   const setTyping = useCallback(
     (isTyping: boolean) => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
@@ -262,9 +250,7 @@ export const useChatSocket = (options: UseChatSocketOptions) => {
     [chatId]
   );
 
-  /**
-   * Marque des messages comme lus
-   */
+  // Marque des messages comme lus
   const markAsRead = useCallback(
     (messageIds: string[]) => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
@@ -284,9 +270,7 @@ export const useChatSocket = (options: UseChatSocketOptions) => {
     [chatId]
   );
 
-  /**
-   * Déconnecte manuellement
-   */
+  // Déconnecte manuellement
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -300,9 +284,7 @@ export const useChatSocket = (options: UseChatSocketOptions) => {
     setStatus('disconnected');
   }, []);
 
-  /**
-   * Établit la connexion au montage du composant et se reconnecte quand le chatId change
-   */
+  // Établit la connexion au montage du composant et se reconnecte quand le chatId change
   useEffect(() => {
     // Mark component as mounted
     isMountedRef.current = true;

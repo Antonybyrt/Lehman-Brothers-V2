@@ -9,11 +9,20 @@ export interface CloseChatRequest {
   readonly userRole: string;
 }
 
+export interface CloseChatNotifications {
+  readonly notifyClient: boolean;
+  readonly notifyAdvisor: boolean;
+  readonly clientId: string;
+  readonly advisorId?: string;
+  readonly chatId: string;
+}
+
 export interface CloseChatResponse {
   readonly success: boolean;
   readonly chatId?: string;
   readonly error?: string;
   readonly errorType?: 'validation' | 'not_found' | 'unauthorized' | 'server';
+  readonly notifications?: CloseChatNotifications;
 }
 
 /**
@@ -65,9 +74,19 @@ export class CloseChatUseCase {
       // Sauvegarder
       await this.chatRepository.save(closedChat);
 
+      // Décider qui notifier (logique métier)
+      const notifications: CloseChatNotifications = {
+        notifyClient: true,
+        notifyAdvisor: closedChat.advisorId !== null,
+        clientId: closedChat.clientId,
+        ...(closedChat.advisorId && { advisorId: closedChat.advisorId }),
+        chatId: closedChat.id,
+      };
+
       return {
         success: true,
         chatId: closedChat.id,
+        notifications,
       };
     } catch (error) {
       if (error instanceof ChatNotFoundError) {
