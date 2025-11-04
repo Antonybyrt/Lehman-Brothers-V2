@@ -5,10 +5,10 @@ import { Header } from "@/components/Header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { 
-  Users, 
-  TrendingUp, 
-  Settings, 
+import {
+  Users,
+  TrendingUp,
+  Settings,
   BarChart3,
   DollarSign,
   Activity,
@@ -17,8 +17,10 @@ import {
   Plus,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  MessageSquare
 } from "lucide-react"
+import { ChatContainer } from "@/components/chat/ChatContainer"
 
 export default function DirectorDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
@@ -55,6 +57,7 @@ export default function DirectorDashboard() {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'accounts', label: 'Account Management', icon: Users },
+    { id: 'chats', label: 'Chats', icon: MessageSquare },
     { id: 'stocks', label: 'Stocks', icon: TrendingUp },
     { id: 'rates', label: 'Savings Rates', icon: DollarSign },
     { id: 'notifications', label: 'Notifications', icon: Activity }
@@ -179,11 +182,10 @@ export default function DirectorDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground shadow-lg'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${activeTab === tab.id
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span className="font-medium">{tab.label}</span>
@@ -223,9 +225,8 @@ export default function DirectorDashboard() {
                         <span className="text-xs text-muted-foreground">{notification.date}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          notification.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${notification.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
                           {notification.status === 'sent' ? 'Sent' : 'Pending'}
                         </span>
                       </div>
@@ -307,9 +308,8 @@ export default function DirectorDashboard() {
                       </div>
                       <div className="text-right mr-4">
                         <p className="text-xl font-bold text-foreground">{account.balance.toLocaleString('fr-FR')} €</p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          account.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${account.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           {account.status === 'active' ? 'Active' : 'Suspended'}
                         </span>
                       </div>
@@ -369,9 +369,8 @@ export default function DirectorDashboard() {
                         <p className={`text-sm ${stock.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
                           {stock.change}
                         </p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          stock.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${stock.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
                           {stock.status === 'active' ? 'Available' : 'Unavailable'}
                         </span>
                       </div>
@@ -467,6 +466,10 @@ export default function DirectorDashboard() {
             </Card>
           )}
 
+          {activeTab === 'chats' && (
+            <ChatContainer />
+          )}
+
           {activeTab === 'notifications' && (
             <Card className="border-0 shadow-lg bg-background/90 backdrop-blur-xl">
               <CardHeader>
@@ -491,9 +494,8 @@ export default function DirectorDashboard() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            notification.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span className={`text-xs px-2 py-1 rounded-full ${notification.status === 'sent' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {notification.status === 'sent' ? 'Sent' : 'Pending'}
                           </span>
                           <Button variant="outline" size="sm">

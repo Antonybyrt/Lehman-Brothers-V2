@@ -28,5 +28,10 @@ export const createAuthRoutes = (authController: AuthController): Router => {
     });
   });
 
+  // Get all users (for advisors to see other advisors for transfer)
+  router.get('/users', authMiddleware, (req: AuthenticatedRequest, res) => {
+    authController.getAllUsers(req, res);
+  });
+
   return router;
 };

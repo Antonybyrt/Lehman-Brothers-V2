@@ -5,21 +5,24 @@ import { Header } from "@/components/Header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { 
-  MessageCircle, 
-  CreditCard, 
-  Users, 
+import {
+  MessageCircle,
+  CreditCard,
+  Users,
   Calculator,
-  DollarSign,
   Clock,
   CheckCircle,
   AlertCircle,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  MessageSquare
 } from "lucide-react"
+import { ChatContainer } from "@/components/chat/ChatContainer"
+import { usePendingChatsCount } from "@/hooks/chat/useUnreadChatsCount"
 
 export default function AdvisorDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
+  const { count: unreadChatsCount } = usePendingChatsCount()
 
   // Mock data for advisor dashboard
   const mockData = {
@@ -48,7 +51,7 @@ export default function AdvisorDashboard() {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'messages', label: 'Messages', icon: MessageCircle },
+    { id: 'chats', label: 'Chats', icon: MessageSquare },
     { id: 'loans', label: 'Loans', icon: CreditCard },
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'calculator', label: 'Calculator', icon: Calculator }
@@ -145,18 +148,23 @@ export default function AdvisorDashboard() {
           <div className="flex space-x-1 bg-background/60 backdrop-blur-xl rounded-lg p-1 border border-border/50">
             {tabs.map((tab) => {
               const Icon = tab.icon
+              const showBadge = tab.id === 'chats' && unreadChatsCount > 0
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground shadow-lg'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-300 relative ${activeTab === tab.id
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span className="font-medium">{tab.label}</span>
+                  {showBadge && (
+                    <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                      {unreadChatsCount}
+                    </span>
+                  )}
                 </button>
               )
             })}
@@ -215,9 +223,8 @@ export default function AdvisorDashboard() {
                     <div key={loan.id} className="p-3 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex items-center justify-between mb-2">
                         <p className="font-medium text-foreground">{loan.client}</p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          loan.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${loan.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
                           {loan.status === 'active' ? 'Active' : 'Completed'}
                         </span>
                       </div>
@@ -244,58 +251,6 @@ export default function AdvisorDashboard() {
                 </CardContent>
               </Card>
             </div>
-          )}
-
-          {activeTab === 'messages' && (
-            <Card className="border-0 shadow-lg bg-background/90 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MessageCircle className="h-5 w-5" />
-                  <span>Instant Messaging</span>
-                </CardTitle>
-                <CardDescription>Communicate with your clients in real time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockData.pendingMessages.map((message) => (
-                    <div key={message.id} className="p-4 bg-background/60 rounded-lg border border-border/30">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
-                            <Users className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-foreground">{message.client}</p>
-                            <p className="text-sm text-muted-foreground">{message.time}</p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            Transfer
-                          </Button>
-                          <Button size="sm" className="bg-primary/90 hover:bg-primary/80">
-                            Reply
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="bg-background/40 p-3 rounded-lg mb-3">
-                        <p className="text-sm text-muted-foreground">{message.message}</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          placeholder="Type your response..."
-                          className="flex-1 px-3 py-2 bg-background/60 border border-border/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        />
-                        <Button size="sm" className="bg-primary/90 hover:bg-primary/80">
-                          Send
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           )}
 
           {activeTab === 'loans' && (
@@ -387,9 +342,8 @@ export default function AdvisorDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          client.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`text-xs px-2 py-1 rounded-full ${client.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
                           {client.status === 'active' ? 'Active' : 'Inactive'}
                         </span>
                         <Button variant="outline" size="sm">
@@ -404,6 +358,10 @@ export default function AdvisorDashboard() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {activeTab === 'chats' && (
+            <ChatContainer />
           )}
 
           {activeTab === 'calculator' && (
