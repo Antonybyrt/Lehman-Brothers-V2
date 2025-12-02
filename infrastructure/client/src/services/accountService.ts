@@ -63,6 +63,21 @@ export interface DeleteAccountResponse {
   type?: string;
 }
 
+export interface TransferAccountRequest {
+  targetIban: string;
+  amount: number;
+  description?: string;
+}
+
+export interface TransferAccountResponse {
+  success: boolean;
+  message?: string;
+  transactionId?: string;
+  sourceBalance?: number;
+  error?: string;
+  type?: string;
+}
+
 class AccountService {
   private api = axios.create({
     baseURL: API_BASE_URL,
@@ -84,9 +99,12 @@ class AccountService {
     try {
       const response = await this.api.post('/accounts', accountData);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: CreateAccountResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -101,9 +119,12 @@ class AccountService {
     try {
       const response = await this.api.get('/accounts');
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: GetAccountsResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -118,9 +139,12 @@ class AccountService {
     try {
       const response = await this.api.get(`/accounts/${accountId}`);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: GetAccountByIdResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -135,9 +159,12 @@ class AccountService {
     try {
       const response = await this.api.patch(`/accounts/${accountId}`, updateData);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: UpdateAccountResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,
@@ -154,9 +181,32 @@ class AccountService {
         data: deleteData
       });
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        return error.response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: DeleteAccountResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
+      }
+      return {
+        success: false,
+        error: 'Network error occurred',
+        type: 'network'
+      };
+    }
+  }
+
+  // Transfer funds
+  async transferAccount(sourceAccountId: string, transferData: TransferAccountRequest): Promise<TransferAccountResponse> {
+    try {
+      const response = await this.api.post(`/accounts/${sourceAccountId}/transfer`, transferData);
+      return response.data;
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: TransferAccountResponse } };
+        if (axiosError.response?.data) {
+          return axiosError.response.data;
+        }
       }
       return {
         success: false,

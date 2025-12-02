@@ -13,3 +13,17 @@ export * from './InvalidIbanError';
 export * from './AccountNotFoundError';
 export * from './UnauthorizedAccountAccessError';
 export * from './TransferRequiredError';
+export * from './InsufficientFundsError';
+export * from './InvalidTransferAmountError';
+export * from './SameAccountTransferError';
+export * from './chat/ChatNotFoundError';
+export * from './chat/MessageNotFoundError';
+export * from './chat/InvalidChatSubjectError';
+export * from './chat/InvalidMessageContentError';
+export * from './chat/UnauthorizedChatAccessError';
+export * from './chat/ChatAlreadyClosedError';
+export * from './chat/ChatAlreadyOpenError';
+export * from './chat/ChatAlreadyHasAdvisorError';
+export * from './chat/ChatTransferNotAllowedError';
+export * from './chat/MessageAlreadyDeletedError';
+

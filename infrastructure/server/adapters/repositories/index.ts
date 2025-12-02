@@ -2,3 +2,8 @@ export * from './PrismaUserRepository';
 export * from './PrismaEmailConfirmationRepository';
 export * from './PrismaAccountRepository';
 export * from './PrismaTransactionRepository';
+export * from './PrismaChatRepository';
+export * from './PrismaMessageRepository';
+export * from './PrismaMessageReadRepository';
+export * from './PrismaChatViewRepository';
+export * from './PrismaUserViewRepository';

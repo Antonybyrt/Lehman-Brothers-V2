@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { CreateAccountUseCase, GetUserAccountsUseCase, GetAccountByIdUseCase, UpdateAccountUseCase, DeleteAccountUseCase } from '@lehman-brothers/application';
+import { CreateAccountUseCase, GetUserAccountsUseCase, GetAccountByIdUseCase, UpdateAccountUseCase, DeleteAccountUseCase, TransferAccountUseCase } from '@lehman-brothers/application';
 import { exhaustive } from 'exhaustive';
 import { AuthenticatedRequest } from '../../middleware/authMiddleware';
 
@@ -9,7 +9,8 @@ export class AccountController {
     private readonly getUserAccountsUseCase: GetUserAccountsUseCase,
     private readonly getAccountByIdUseCase: GetAccountByIdUseCase,
     private readonly updateAccountUseCase: UpdateAccountUseCase,
-    private readonly deleteAccountUseCase: DeleteAccountUseCase
+    private readonly deleteAccountUseCase: DeleteAccountUseCase,
+    private readonly transferAccountUseCase: TransferAccountUseCase
   ) {}
 
   public async createAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -217,6 +218,55 @@ export class AccountController {
           'validation': () => 400,
           'not_found': () => 404,
           'unauthorized': () => 403,
+          'server': () => 500,
+          'undefined': () => 400
+        });
+
+        res.status(statusCode).json({
+          success: false,
+          error: result.error,
+          type: result.errorType || 'unknown'
+        });
+      }
+    });
+  }
+
+  public async transferAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const { id } = req.params;
+    const { targetIban, amount, description } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        error: 'User authentication required'
+      });
+      return;
+    }
+
+    const result = await this.transferAccountUseCase.execute({
+      sourceAccountId: id!,
+      userId,
+      targetIban,
+      amount,
+      description,
+    });
+
+    exhaustive(String(result.success), {
+      'true': () => {
+        res.status(200).json({
+          success: true,
+          message: result.message,
+          transactionId: result.transactionId,
+          sourceBalance: result.sourceBalance
+        });
+      },
+      'false': () => {
+        const statusCode = exhaustive(String(result.errorType), {
+          'validation': () => 400,
+          'not_found': () => 404,
+          'unauthorized': () => 403,
+          'insufficient_funds': () => 400,
           'server': () => 500,
           'undefined': () => 400
         });

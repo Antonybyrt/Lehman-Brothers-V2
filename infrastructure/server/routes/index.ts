@@ -3,12 +3,14 @@ import { createAuthRoutes } from './authRoutes';
 import { createHealthRoutes } from './healthRoutes';
 import { createEmailConfirmationRoutes } from './emailConfirmationRoutes';
 import { createAccountRoutes } from './accountRoutes';
-import { AuthController, EmailConfirmationController, AccountController } from '../adapters/controllers';
+import { createChatRoutes } from './chatRoutes';
+import { AuthController, EmailConfirmationController, AccountController, ChatRestController } from '../adapters/controllers';
 
 export const createAppRoutes = (
   authController: AuthController,
   emailConfirmationController: EmailConfirmationController,
-  accountController: AccountController
+  accountController: AccountController,
+  chatRestController: ChatRestController
 ): Router => {
   const router = Router();
 
@@ -17,6 +19,7 @@ export const createAppRoutes = (
   router.use(createAuthRoutes(authController));
   router.use(createEmailConfirmationRoutes(emailConfirmationController));
   router.use(createAccountRoutes(accountController));
+  router.use(createChatRoutes(chatRestController));
 
   return router;
 };

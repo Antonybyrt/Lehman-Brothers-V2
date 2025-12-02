@@ -36,6 +36,14 @@ export interface RegisterResponse {
   type?: string;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
 class AuthService {
   private api = axios.create({
     baseURL: API_BASE_URL,
@@ -48,8 +56,8 @@ class AuthService {
     try {
       const response = await this.api.post('/auth/login', credentials);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data) {
         return error.response.data;
       }
       return {
@@ -66,11 +74,11 @@ class AuthService {
         ...userData,
         role: userData.role || 'CLIENT'
       };
-      
+
       const response = await this.api.post('/auth/register', dataWithRole);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data) {
         return {
           success: false,
           error: error.response.data.error,
@@ -89,8 +97,8 @@ class AuthService {
     try {
       const response = await this.api.get(`/confirm-email/${encodeURIComponent(token)}`);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data) {
         return error.response.data;
       }
       return {
@@ -121,8 +129,23 @@ class AuthService {
     try {
       const response = await this.api.get('/auth/getrole');
       return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        return error.response.data;
+      }
+      return {
+        success: false,
+        error: 'Network error occurred'
+      };
+    }
+  }
+
+  async getAllUsers(): Promise<{ success: boolean; users?: User[]; error?: string }> {
+    try {
+      const response = await this.api.get('/users');
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data) {
         return error.response.data;
       }
       return {

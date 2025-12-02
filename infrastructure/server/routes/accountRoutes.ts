@@ -22,6 +22,10 @@ export const createAccountRoutes = (accountController: AccountController): Route
     accountController.updateAccount(req, res)
   );
 
+  router.post('/accounts/:id/transfer', authMiddleware, (req: AuthenticatedRequest, res) => 
+    accountController.transferAccount(req, res)
+  );
+
   router.delete('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) => 
     accountController.deleteAccount(req, res)
   );

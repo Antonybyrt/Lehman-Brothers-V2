@@ -14,14 +14,17 @@
     "@lehman-brothers/application": "*",
     "@lehman-brothers/domain": "*",
     "@prisma/client": "^5.0.0",
+    "@types/ws": "^8.18.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "debounce": "^2.2.0",
     "dotenv": "^17.2.3",
     "express": "^4.18.0",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "nodemailer": "^6.9.0",
     "prisma": "^5.0.0",
+    "throttle": "^1.0.3",
     "zod": "^3.22.0"
   },
   "devDependencies": {
