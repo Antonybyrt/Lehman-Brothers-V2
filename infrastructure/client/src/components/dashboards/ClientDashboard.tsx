@@ -23,6 +23,8 @@ import {
 } from "lucide-react"
 import { accountService, Account } from "@/services/accountService"
 import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog } from "@/components/dialogs"
+  MessageSquare
+} from "lucide-react"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 
 export default function ClientDashboard() {
