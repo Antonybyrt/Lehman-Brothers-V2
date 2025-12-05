@@ -18,6 +18,7 @@ import { chatService } from '@/services/chatService'
 import { Chat, DisplayMessage, ChatTab, ChatStatus } from '@/types/chat'
 import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 // WebSocket message types
 type WsEventType = 'join' | 'typing' | 'message:new' | 'message:created' | 'message:read' | 'chat:created' | 'chat:updated' | 'error'
@@ -69,7 +70,7 @@ export function useChat() {
   // ========== Computed values ==========
   const selectedChat = chats.find(c => c.id === selectedChatId)
   const otherPersonName = selectedChat
-    ? (selectedChat.clientId === userId ? selectedChat.advisorName || 'Unassigned' : selectedChat.clientName || 'Client')
+    ? (selectedChat.clientId === userId ? selectedChat.advisorName || 'Unassigned' : selectedChat.clientName || UserRole.CLIENT)
     : null
 
   // ========== Load chats from API ==========
@@ -228,8 +229,10 @@ export function useChat() {
       chatWsRef.current = null
     }
 
-    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'}?token=${token}`
-    const ws = new WebSocket(wsUrl)
+    // Use WebSocket subprotocol to pass the JWT token securely
+    // This avoids exposing the token in the URL
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'
+    const ws = new WebSocket(wsUrl, `Bearer.${token}`)
     chatWsRef.current = ws
 
     ws.onopen = () => {
@@ -353,8 +356,9 @@ export function useChat() {
   const connectToGlobalEvents = useCallback(() => {
     if (!token || !userId) return
 
-    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'}?token=${token}`
-    const ws = new WebSocket(wsUrl)
+    // Use WebSocket subprotocol to pass the JWT token securely
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'
+    const ws = new WebSocket(wsUrl, `Bearer.${token}`)
     globalWsRef.current = ws
 
     ws.onopen = () => {
@@ -363,8 +367,9 @@ export function useChat() {
 
     ws.onmessage = (event) => {
       try {
+        console.log('[WS Global] Message received', event)
         const message: WsMessage = JSON.parse(event.data)
-
+        console.log(message)
         if (message.type === 'chat:created') {
           const payload = message.payload as {
             chatId: string
@@ -390,9 +395,9 @@ export function useChat() {
 
           setChats(prev => [newChat, ...prev])
 
-          if (userRole === 'ADVISOR') {
+          if (userRole === UserRole.ADVISOR) {
             toast.success(`New chat created: ${payload.subject}`)
-          } else if (userRole === 'CLIENT' && payload.advisorId) {
+          } else if (userRole === UserRole.CLIENT && payload.advisorId) {
             toast.success(`${payload.advisorName || 'An advisor'} created a chat: ${payload.subject}`)
           }
         } else if (message.type === 'chat:updated') {
@@ -407,7 +412,7 @@ export function useChat() {
             createdAt?: string
           }
 
-          if (payload.advisorId !== undefined && userRole === 'ADVISOR') {
+          if (payload.advisorId !== undefined && userRole === UserRole.ADVISOR) {
             setChats(prev => {
               if (payload.advisorId !== userId) {
                 return prev.filter(chat => chat.id !== payload.chatId)
@@ -465,7 +470,7 @@ export function useChat() {
           if (payload.advisorName !== undefined) {
             if (payload.advisorId === userId) {
               toast.success('Chat assigned to you')
-            } else if (userRole === 'ADVISOR') {
+            } else if (userRole === UserRole.ADVISOR) {
               toast.success(`Chat transferred to ${payload.advisorName}`)
             }
           } else if (payload.status) {

@@ -44,7 +44,7 @@ import {
   TransferChatUseCase,
   SetTypingStatusUseCase,
   CloseChatUseCase,
-  GetPendingChatsCountUseCase
+  GetPendingChatsUseCase
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 
@@ -77,10 +77,10 @@ const authenticationService = new JwtAuthenticationService(
 );
 const emailService = new NodemailerEmailService();
 
-// WebSocket Service (instantiated before notification service)
+// WebSocket Service
 const wsService = new WsServerService(httpServer, authenticationService, userViewRepository);
 
-// Notification Service (wraps WsService with abstraction)
+// Notification Service
 const notificationService = new WsChatNotificationService(wsService);
 
 // Auth use cases
@@ -95,7 +95,7 @@ const getAccountByIdUseCase = new GetAccountByIdUseCase(accountRepository);
 const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
 
-// Chat use cases (now use ChatNotificationService abstraction)
+// Chat use cases
 const createChatUseCase = new CreateChatUseCase(chatRepository, userRepository, chatViewRepository, notificationService);
 const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageRepository, userRepository, userViewRepository, notificationService);
 const getMessagesBeforeUseCase = new GetMessagesBeforeUseCase(messageRepository, chatRepository, messageReadRepository, userRepository);
@@ -103,7 +103,7 @@ const markAsReadUseCase = new MarkAsReadUseCase(messageReadRepository, messageRe
 const transferChatUseCase = new TransferChatUseCase(chatRepository, userRepository);
 const setTypingStatusUseCase = new SetTypingStatusUseCase(chatRepository);
 const closeChatUseCase = new CloseChatUseCase(chatRepository);
-const getPendingChatsCountUseCase = new GetPendingChatsCountUseCase(chatRepository, messageRepository);
+const getPendingChatsUseCase = new GetPendingChatsUseCase(chatRepository, messageRepository, chatViewRepository);
 
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
@@ -114,11 +114,12 @@ const chatRestController = new ChatRestController(
   getMessagesBeforeUseCase,
   closeChatUseCase,
   transferChatUseCase,
-  getPendingChatsCountUseCase,
+  getPendingChatsUseCase,
   chatRepository,
   userRepository,
   chatViewRepository,
   userViewRepository,
+  messageRepository,
   wsService
 );
 
@@ -165,10 +166,11 @@ httpServer.listen(port, () => {
   console.log(`   GET http://localhost:${port}/chats (Protected)`);
   console.log(`   GET http://localhost:${port}/chats/:id (Protected)`);
   console.log(`   GET http://localhost:${port}/chats/:id/messages (Protected)`);
+  console.log(`   GET http://localhost:${port}/chats/pending (Protected - Advisor)`);
   console.log(`   POST http://localhost:${port}/chats/:id/close (Protected - Advisor)`);
   console.log(`   POST http://localhost:${port}/chats/:id/transfer (Protected - Advisor)`);
   console.log(`🔌 WebSocket chat:`);
-  console.log(`   ws://localhost:${port}?token=<JWT>`);
+  console.log(`   ws://localhost:${port}`);
   console.log(`   Client → Server: message:new, message:read, typing, join`);
   console.log(`   Server → Client: message:created, chat:created, chat:updated, chat:closed`);
 });

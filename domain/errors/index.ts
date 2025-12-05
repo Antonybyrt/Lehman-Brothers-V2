@@ -23,4 +23,4 @@ export * from './chat/ChatAlreadyOpenError';
 export * from './chat/ChatAlreadyHasAdvisorError';
 export * from './chat/ChatTransferNotAllowedError';
 export * from './chat/MessageAlreadyDeletedError';
-
+export * from './chat/InvalidChatPriorityError';

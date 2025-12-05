@@ -46,6 +46,7 @@ export class PrismaChatViewRepository implements ChatViewRepository {
         ? `${chatData.advisor.first_name} ${chatData.advisor.last_name}`.trim()
         : null,
       status: chatData.status,
+      priority: chatData.priority,
       createdAt: chatData.created_at,
       updatedAt: chatData.updated_at,
     };
@@ -82,6 +83,7 @@ export class PrismaChatViewRepository implements ChatViewRepository {
       advisorId: chat.advisorId,
       advisorName,
       status: chat.status,
+      priority: chat.priority,
       createdAt: chat.createdAt,
       updatedAt: chat.updatedAt,
     };

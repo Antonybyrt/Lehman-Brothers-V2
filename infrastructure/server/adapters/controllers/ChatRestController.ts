@@ -4,7 +4,7 @@ import {
   GetMessagesBeforeUseCase,
   CloseChatUseCase,
   TransferChatUseCase,
-  GetPendingChatsCountUseCase
+  GetPendingChatsUseCase
 } from '@lehman-brothers/application';
 import { exhaustive } from 'exhaustive';
 import { AuthenticatedRequest } from '../../middleware/authMiddleware';
@@ -12,9 +12,11 @@ import {
   ChatRepository,
   UserRepository,
   ChatViewRepository,
-  UserViewRepository
+  UserViewRepository,
+  MessageRepository
 } from '@lehman-brothers/application';
 import { WsServerService } from '../services/WsServerService';
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 export class ChatRestController {
   constructor(
@@ -22,11 +24,12 @@ export class ChatRestController {
     private readonly getMessagesBeforeUseCase: GetMessagesBeforeUseCase,
     private readonly closeChatUseCase: CloseChatUseCase,
     private readonly transferChatUseCase: TransferChatUseCase,
-    private readonly getPendingChatsCountUseCase: GetPendingChatsCountUseCase,
+    private readonly getPendingChatsUseCase: GetPendingChatsUseCase,
     private readonly chatRepository: ChatRepository,
     private readonly userRepository: UserRepository,
     private readonly chatViewRepository: ChatViewRepository,
     private readonly userViewRepository: UserViewRepository,
+    private readonly messageRepository: MessageRepository,
     private readonly wsServerService: WsServerService
   ) { }
 
@@ -38,6 +41,7 @@ export class ChatRestController {
     const { subject, clientId: requestedClientId } = req.body;
     const userId = req.user?.userId;
     const userRole = req.user?.role;
+    const { priority } = req.body;
 
     if (!userId) {
       res.status(401).json({
@@ -51,13 +55,14 @@ export class ChatRestController {
     // - If user is ADVISOR and provides clientId, use it
     // - Otherwise, use the authenticated user's ID
     let actualClientId = userId;
-    if (userRole === 'ADVISOR' && requestedClientId) {
+    if (userRole === UserRole.ADVISOR && requestedClientId) {
       actualClientId = requestedClientId;
     }
 
     const result = await this.createChatUseCase.execute({
       clientId: actualClientId,
       subject,
+      priority,
       ...(userRole ? { creatorRole: userRole, creatorId: userId } : {}),
     });
 
@@ -79,7 +84,8 @@ export class ChatRestController {
 
         res.status(statusCode).json({
           success: false,
-          error: result.error
+          error: result.error,
+          errorType: result.errorType
         });
       }
     });
@@ -104,9 +110,9 @@ export class ChatRestController {
     try {
       let chats: any[] = [];
 
-      if (userRole === 'CLIENT') {
+      if (userRole === UserRole.CLIENT) {
         chats = await this.chatRepository.findByClientId(userId);
-      } else if (userRole === 'ADVISOR') {
+      } else if (userRole === UserRole.ADVISOR) {
         const assignedChats = await this.chatRepository.findByAdvisorId(userId);
         const unassignedChats = await this.chatRepository.findUnassigned();
 
@@ -127,6 +133,9 @@ export class ChatRestController {
           advisorName = await this.userViewRepository.getFullNameById(chat.advisorId) || 'Unknown Advisor';
         }
 
+        const messages = await this.messageRepository.findByChatId(chat.id, 1);
+        const lastMessage = messages.length > 0 ? messages[0] : null;
+
         return {
           id: chat.id,
           subject: chat.subject,
@@ -135,8 +144,12 @@ export class ChatRestController {
           advisorId: chat.advisorId,
           advisorName,
           status: chat.status,
+          priority: chat.priority,
           createdAt: chat.createdAt.toISOString(),
           updatedAt: chat.updatedAt.toISOString(),
+          lastMessage: lastMessage ? lastMessage.content : null,
+          lastMessageAt: lastMessage ? lastMessage.sentAt.toISOString() : null,
+          lastMessageAuthorId: lastMessage ? lastMessage.authorId : null,
         };
       }));
 
@@ -154,10 +167,10 @@ export class ChatRestController {
   }
 
   /**
-   * GET /chats/pending-count
-   * Get count of chats pending advisor response
+   * GET /chats/pending
+   * Get chats pending advisor response
    */
-  public async getPendingChatsCount(req: AuthenticatedRequest, res: Response): Promise<void> {
+  public async getPendingChats(req: AuthenticatedRequest, res: Response): Promise<void> {
     const userId = req.user?.userId;
     const userRole = req.user?.role;
 
@@ -169,7 +182,7 @@ export class ChatRestController {
       return;
     }
 
-    const result = await this.getPendingChatsCountUseCase.execute({
+    const result = await this.getPendingChatsUseCase.execute({
       userId,
       userRole
     });
@@ -178,7 +191,7 @@ export class ChatRestController {
       'true': () => {
         res.status(200).json({
           success: true,
-          count: result.count
+          chats: result.chats
         });
       },
       'false': () => {
@@ -234,7 +247,7 @@ export class ChatRestController {
       const isAuthorized =
         chat.clientId === userId ||
         chat.advisorId === userId ||
-        (userRole === 'ADVISOR' && !chat.advisorId) || // Advisors can access unassigned chats
+        (userRole === UserRole.ADVISOR && !chat.advisorId) || // Advisors can access unassigned chats
         userRole === 'ADMIN';
 
       if (!isAuthorized) {
@@ -253,6 +266,7 @@ export class ChatRestController {
           clientId: chat.clientId,
           advisorId: chat.advisorId,
           status: chat.status,
+          priority: chat.priority,
           createdAt: chat.createdAt.toISOString(),
           updatedAt: chat.updatedAt.toISOString(),
         }
@@ -307,7 +321,7 @@ export class ChatRestController {
       const isAuthorized =
         chat.clientId === userId ||
         chat.advisorId === userId ||
-        (userRole === 'ADVISOR' && !chat.advisorId) || // Advisors can access unassigned chats
+        (userRole === UserRole.ADVISOR && !chat.advisorId) || // Advisors can access unassigned chats
         userRole === 'ADMIN';
 
       if (!isAuthorized) {
@@ -487,6 +501,7 @@ export class ChatRestController {
             advisorId: chatView.advisorId,
             advisorName: chatView.advisorName,
             status: chatView.status,
+            priority: chatView.priority,
             createdAt: chatView.createdAt.toISOString(),
           };
 

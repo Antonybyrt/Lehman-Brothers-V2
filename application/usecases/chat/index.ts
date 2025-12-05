@@ -5,4 +5,4 @@ export * from './MarkAsReadUseCase';
 export * from './TransferChatUseCase';
 export * from './SetTypingStatusUseCase';
 export * from './CloseChatUseCase';
-export * from './GetPendingChatsCountUseCase';
+export * from './GetPendingChatsUseCase';

@@ -74,11 +74,37 @@ export class WsServerService {
     this.startPingPong();
   }
 
-  // Authentifie un utilisateur à partir d'un token dans l'URL ou les headers
+  // Authentifie un utilisateur à partir d'un token
+  // Supporte deux méthodes:
+  // 1. Header Authorization: "Bearer <token>" (préféré pour HTTPS)
+  // 2. Sec-WebSocket-Protocol header avec le token (fallback pour compatibilité navigateur)
   private async authenticateUser(request: IncomingMessage): Promise<WsUserContext | null> {
     try {
-      const url = new URL(request.url || '', `http://${request.headers.host}`);
-      const token = url.searchParams.get('token');
+      let token: string | null = null;
+
+      // Méthode 1: Header Authorization (préféré)
+      const authHeader = request.headers['authorization'] || request.headers['Authorization'];
+      if (authHeader && typeof authHeader === 'string') {
+        const parts = authHeader.split(' ');
+        if (parts.length === 2 && parts[0] === 'Bearer' && parts[1]) {
+          token = parts[1];
+        }
+      }
+
+      // Méthode 2: Sec-WebSocket-Protocol header (fallback pour navigateurs)
+      // Format: "Bearer.<token>" dans le subprotocol
+      if (!token) {
+        const protocols = request.headers['sec-websocket-protocol'];
+        if (protocols && typeof protocols === 'string') {
+          const parts = protocols.split(',').map(p => p.trim());
+          for (const protocol of parts) {
+            if (protocol.startsWith('Bearer.')) {
+              token = protocol.substring(7); // Enlever "Bearer."
+              break;
+            }
+          }
+        }
+      }
 
       if (!token) {
         return null;

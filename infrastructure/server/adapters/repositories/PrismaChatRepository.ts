@@ -1,4 +1,4 @@
-import { Chat, ChatStatus } from '@lehman-brothers/domain';
+import { Chat, ChatStatus, ChatPriority } from '@lehman-brothers/domain';
 import { ChatRepository } from '@lehman-brothers/application';
 import { PrismaClient } from '@prisma/client';
 
@@ -15,7 +15,8 @@ export class PrismaChatRepository implements ChatRepository {
         client_id: chatData.client_id,
         advisor_id: chatData.advisor_id,
         transferred_from_id: chatData.transferred_from_id,
-        status: chatData.status as any,
+        priority: chatData.priority as ChatPriority,
+        status: chatData.status as ChatStatus,
         open: chatData.open,
         updated_at: chatData.updated_at,
       },
@@ -25,7 +26,8 @@ export class PrismaChatRepository implements ChatRepository {
         client_id: chatData.client_id,
         advisor_id: chatData.advisor_id,
         transferred_from_id: chatData.transferred_from_id,
-        status: chatData.status as any,
+        priority: chatData.priority as ChatPriority,
+        status: chatData.status as ChatStatus,
         open: chatData.open,
         created_at: chatData.created_at,
         updated_at: chatData.updated_at,

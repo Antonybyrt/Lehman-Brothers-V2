@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { chatService } from "@/services/chatService"
 import { authService } from "@/services/authService"
 import toast from "react-hot-toast"
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 interface CreateChatDialogProps {
   isOpen: boolean
@@ -33,11 +34,12 @@ export function CreateChatDialog({
 }: CreateChatDialogProps) {
   const [subject, setSubject] = useState('')
   const [selectedClientId, setSelectedClientId] = useState('')
+  const [selectedPriority, setSelectedPriority] = useState('LOW')
   const [clients, setClients] = useState<Client[]>([])
   const [loadingClients, setLoadingClients] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const isAdvisor = userRole === 'ADVISOR' || userRole === 'DIRECTOR'
+  const isAdvisor = userRole === UserRole.ADVISOR || userRole === UserRole.DIRECTOR
 
   // Charger les clients quand le dialog s'ouvre (pour les advisors)
   useEffect(() => {
@@ -58,7 +60,7 @@ export function CreateChatDialog({
 
       if (response.success && response.users) {
         // Filtrer uniquement les clients
-        const clientsList = response.users.filter(user => user.role === 'CLIENT')
+        const clientsList = response.users.filter(user => user.role === UserRole.CLIENT)
         setClients(clientsList)
       } else {
         toast.error('Failed to load clients')
@@ -100,6 +102,7 @@ export function CreateChatDialog({
 
       const response = await chatService.createChat({
         subject: subject.trim(),
+        priority: selectedPriority,
         ...(isAdvisor && selectedClientId ? { clientId: selectedClientId } : {})
       })
 
@@ -218,6 +221,23 @@ export function CreateChatDialog({
                 <p className="text-xs text-muted-foreground">
                   {subject.length}/200 characters
                 </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="priority" className="text-foreground">
+                  Priority <span className="text-red-500">*</span>
+                </Label>
+                <select
+                  id="client"
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  disabled={loading}
+                  className="w-full px-3 py-2 bg-background/50 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="LOW" key="LOW">Low</option>
+                  <option value="MEDIUM" key="MEDIUM">Medium</option>
+                  <option value="HIGH" key="HIGH">High</option>
+                </select>
               </div>
 
               {/* Actions */}

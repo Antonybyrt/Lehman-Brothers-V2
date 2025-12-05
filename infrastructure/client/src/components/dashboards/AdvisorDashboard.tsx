@@ -19,35 +19,69 @@ import {
 } from "lucide-react"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 import { usePendingChatsCount } from "@/hooks/chat/useUnreadChatsCount"
+import { chatService } from "@/services/chatService"
+import { authService } from "@/services/authService"
+import { Chat } from "@/types/chat"
+import { useEffect } from "react"
+import { formatDistanceToNow } from "date-fns"
 
 export default function AdvisorDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const { count: unreadChatsCount } = usePendingChatsCount()
 
-  // Mock data for advisor dashboard
-  const mockData = {
-    pendingMessages: [
-      { id: '1', client: 'Jean Dupont', message: 'Hello, I would like to get a mortgage loan...', time: '2 min', priority: 'high' },
-      { id: '2', client: 'Marie Martin', message: 'Question about my savings account', time: '15 min', priority: 'medium' },
-      { id: '3', client: 'Pierre Durand', message: 'Need help with my investments', time: '1h', priority: 'low' }
-    ],
-    activeLoans: [
-      { id: '1', client: 'Jean Dupont', amount: 250000, remaining: 180000, monthlyPayment: 1200, rate: 2.1, status: 'active' },
-      { id: '2', client: 'Sophie Leroy', amount: 80000, remaining: 45000, monthlyPayment: 450, rate: 1.8, status: 'active' },
-      { id: '3', client: 'Marc Petit', amount: 150000, remaining: 0, monthlyPayment: 0, rate: 2.3, status: 'completed' }
-    ],
-    clients: [
-      { id: '1', name: 'Jean Dupont', email: 'jean.dupont@email.com', accounts: 3, lastActivity: 'Today', status: 'active' },
-      { id: '2', name: 'Marie Martin', email: 'marie.martin@email.com', accounts: 2, lastActivity: 'Yesterday', status: 'active' },
-      { id: '3', name: 'Pierre Durand', email: 'pierre.durand@email.com', accounts: 4, lastActivity: '3 days ago', status: 'inactive' }
-    ],
-    stats: {
-      totalClients: 45,
-      activeLoans: 12,
-      pendingMessages: 8,
-      monthlyRevenue: 15600
+
+  const [pendingChats, setPendingChats] = useState<Chat[]>([])
+  const [clients, setClients] = useState<any[]>([])
+  const [stats, setStats] = useState({
+    totalClients: 0,
+    activeLoans: 12, // Mock
+    pendingMessages: 0,
+    monthlyRevenue: 15600 // Mock
+  })
+
+  // Mock data for loans (kept as mock for now)
+  const activeLoans = [
+    { id: '1', client: 'Jean Dupont', amount: 250000, remaining: 180000, monthlyPayment: 1200, rate: 2.1, status: 'active' },
+    { id: '2', client: 'Sophie Leroy', amount: 80000, remaining: 45000, monthlyPayment: 450, rate: 1.8, status: 'active' },
+    { id: '3', client: 'Marc Petit', amount: 150000, remaining: 0, monthlyPayment: 0, rate: 2.3, status: 'completed' }
+  ]
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        chatService.setAuthToken(token)
+        authService.setAuthToken(token)
+
+        try {
+          // Fetch pending chats directly
+          const pendingChatsResponse = await chatService.getPendingChats()
+          if (pendingChatsResponse.success && pendingChatsResponse.chats) {
+            setPendingChats(pendingChatsResponse.chats)
+            setStats(prev => ({ ...prev, pendingMessages: pendingChatsResponse.chats!.length }))
+          }
+
+          // Fetch clients
+          const usersResponse = await authService.getAllUsers()
+          if (usersResponse.success && usersResponse.users) {
+            const clientList = usersResponse.users.filter(u => u.role === 'CLIENT')
+            setClients(clientList.map(c => ({
+              id: c.id,
+              name: `${c.firstName} ${c.lastName}`,
+              email: c.email,
+              accounts: 0, // Mock
+              lastActivity: 'Unknown', // Mock
+              status: 'active'
+            })))
+            setStats(prev => ({ ...prev, totalClients: clientList.length }))
+          }
+        } catch (error) {
+          console.error("Error fetching dashboard data:", error)
+        }
+      }
     }
-  }
+    fetchData()
+  }, [])
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -94,7 +128,7 @@ export default function AdvisorDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Clients</p>
-                  <p className="text-2xl font-bold text-foreground">{mockData.stats.totalClients}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.totalClients}</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
               </div>
@@ -106,7 +140,7 @@ export default function AdvisorDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Messages</p>
-                  <p className="text-2xl font-bold text-foreground">{mockData.stats.pendingMessages}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.pendingMessages}</p>
                 </div>
                 <MessageCircle className="h-8 w-8 text-blue-500" />
               </div>
@@ -118,7 +152,7 @@ export default function AdvisorDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Active Loans</p>
-                  <p className="text-2xl font-bold text-foreground">{mockData.stats.activeLoans}</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.activeLoans}</p>
                 </div>
                 <CreditCard className="h-8 w-8 text-green-500" />
               </div>
@@ -130,7 +164,7 @@ export default function AdvisorDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Monthly Revenue</p>
-                  <p className="text-2xl font-bold text-foreground">{mockData.stats.monthlyRevenue.toLocaleString('fr-FR')} €</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.monthlyRevenue.toLocaleString('fr-FR')} €</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-purple-500" />
               </div>
@@ -189,23 +223,31 @@ export default function AdvisorDashboard() {
                   <CardDescription>Client messages requiring a response</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {mockData.pendingMessages.map((message) => (
-                    <div key={message.id} className="p-3 bg-background/60 rounded-lg border border-border/30">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <p className="font-medium text-foreground">{message.client}</p>
-                          {message.priority === 'high' && <AlertCircle className="h-4 w-4 text-red-500" />}
-                          {message.priority === 'medium' && <Clock className="h-4 w-4 text-yellow-500" />}
-                          {message.priority === 'low' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                  {pendingChats.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No pending messages</p>
+                  ) : (
+                    pendingChats.map((chat) => (
+                      <div key={chat.id} className="p-3 bg-background/60 rounded-lg border border-border/30">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <p className="font-medium text-foreground">{chat.clientName || 'Unknown Client'}</p>
+                            {chat.priority === 'HIGH' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                            {chat.priority === 'MEDIUM' && <Clock className="h-4 w-4 text-yellow-500" />}
+                            {chat.priority === 'LOW' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {chat.lastMessageAt ? formatDistanceToNow(new Date(chat.lastMessageAt), { addSuffix: true }) : 'New'}
+                          </span>
                         </div>
-                        <span className="text-xs text-muted-foreground">{message.time}</span>
+                        <p className="text-sm text-muted-foreground mb-3 truncate">
+                          {chat.lastMessage || chat.subject}
+                        </p>
+                        <Button size="sm" className="bg-primary/90 hover:bg-primary/80" onClick={() => setActiveTab('chats')}>
+                          Reply
+                        </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">{message.message}</p>
-                      <Button size="sm" className="bg-primary/90 hover:bg-primary/80">
-                        Reply
-                      </Button>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </CardContent>
               </Card>
 
@@ -219,7 +261,7 @@ export default function AdvisorDashboard() {
                   <CardDescription>Tracking of ongoing loans</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {mockData.activeLoans.map((loan) => (
+                  {activeLoans.map((loan) => (
                     <div key={loan.id} className="p-3 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex items-center justify-between mb-2">
                         <p className="font-medium text-foreground">{loan.client}</p>
@@ -269,7 +311,7 @@ export default function AdvisorDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockData.activeLoans.map((loan) => (
+                  {activeLoans.map((loan) => (
                     <div key={loan.id} className="p-4 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
@@ -329,7 +371,7 @@ export default function AdvisorDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockData.clients.map((client) => (
+                  {clients.map((client) => (
                     <div key={client.id} className="flex items-center justify-between p-4 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">

@@ -25,6 +25,7 @@
     "nodemailer": "^6.9.0",
     "prisma": "^5.0.0",
     "throttle": "^1.0.3",
+    "ws": "^8.18.3",
     "zod": "^3.22.0"
   },
   "devDependencies": {

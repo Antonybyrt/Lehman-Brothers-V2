@@ -5,4 +5,4 @@ export * from './Result';
 export * from './Iban';
 export * from './ChatSubject';
 export * from './MessageContent';
-
+export * from './ChatPriority';

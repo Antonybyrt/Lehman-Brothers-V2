@@ -2,6 +2,7 @@ import { Chat } from '@lehman-brothers/domain';
 import { ChatRepository } from '../../repositories';
 import { ChatNotFoundError, UnauthorizedChatAccessError, ValidationError } from '@lehman-brothers/domain';
 import { exhaustive } from 'exhaustive';
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 export interface CloseChatRequest {
   readonly chatId: string;
@@ -50,7 +51,7 @@ export class CloseChatUseCase {
       const canClose =
         request.userId === chat.clientId ||
         request.userId === chat.advisorId ||
-        request.userRole === 'DIRECTOR';
+        request.userRole === UserRole.DIRECTOR;
 
       if (!canClose) {
         throw new UnauthorizedChatAccessError(request.chatId, request.userId);

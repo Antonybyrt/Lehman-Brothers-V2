@@ -6,11 +6,13 @@ import {
   ChatTransferNotAllowedError,
   ChatAlreadyClosedError,
   ChatAlreadyOpenError,
+  InvalidChatPriorityError,
 } from '../errors';
+import { UserRole } from '../values/UserRole';
+import { ChatPriority, ChatPriorityValue } from '../values/ChatPriority';
 
 export enum ChatStatus {
   OPEN = 'OPEN',
-  TRANSFERRED = 'TRANSFERRED',
   CLOSED = 'CLOSED',
 }
 
@@ -21,6 +23,7 @@ interface ChatProps {
   advisorId: string | null;
   transferredFromId: string | null;
   status: ChatStatus;
+  priority: ChatPriorityValue;
   open: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -34,11 +37,18 @@ export class Chat {
     subject: string;
     clientId: string;
     advisorId?: string | null;
+    priority?: string;
   }): Result<Chat, Error> {
     try {
       const chatSubjectResult = ChatSubject.create(params.subject);
       if (!chatSubjectResult.isSuccess()) {
         return Result.failure(chatSubjectResult.getError());
+      }
+
+      const chatPriorityResult = ChatPriorityValue.create(
+        params.priority);
+      if (!chatPriorityResult.isSuccess()) {
+        return Result.failure(chatPriorityResult.getError());
       }
 
       const chat = new Chat({
@@ -48,6 +58,7 @@ export class Chat {
         advisorId: params.advisorId || null,
         transferredFromId: null,
         status: ChatStatus.OPEN,
+        priority: chatPriorityResult.getValue(),
         open: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -66,6 +77,7 @@ export class Chat {
     advisor_id: string | null;
     transferred_from_id: string | null;
     status: string;
+    priority: string;
     open: boolean;
     created_at: Date;
     updated_at: Date;
@@ -75,6 +87,12 @@ export class Chat {
       throw new Error('Invalid subject from database');
     }
 
+    const chatPriorityResult = ChatPriorityValue.create(
+      data.priority);
+    if (!chatPriorityResult.isSuccess()) {
+      throw chatPriorityResult.getError();
+    }
+
     return new Chat({
       id: data.id,
       subject: chatSubjectResult.getValue(),
@@ -82,6 +100,7 @@ export class Chat {
       advisorId: data.advisor_id,
       transferredFromId: data.transferred_from_id,
       status: data.status as ChatStatus,
+      priority: chatPriorityResult.getValue(),
       open: data.open,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
@@ -95,6 +114,7 @@ export class Chat {
     advisor_id: string | null;
     transferred_from_id: string | null;
     status: string;
+    priority: string;
     open: boolean;
     created_at: Date;
     updated_at: Date;
@@ -106,6 +126,7 @@ export class Chat {
       advisor_id: this.props.advisorId,
       transferred_from_id: this.props.transferredFromId,
       status: this.props.status,
+      priority: this.props.priority.getValue(),
       open: this.props.open,
       created_at: this.props.createdAt,
       updated_at: this.props.updatedAt,
@@ -179,6 +200,22 @@ export class Chat {
     return Result.success(updatedChat);
   }
 
+  setPriority(priority: string): Result<Chat, Error> {
+    const chatPriorityResult = ChatPriorityValue.create(
+      priority);
+    if (!chatPriorityResult.isSuccess()) {
+      throw chatPriorityResult.getError();
+    }
+
+    const updatedChat = new Chat({
+      ...this.props,
+      priority: chatPriorityResult.getValue(),
+      updatedAt: new Date(),
+    });
+
+    return Result.success(updatedChat);
+  }
+
   get id(): string {
     return this.props.id;
   }
@@ -203,6 +240,10 @@ export class Chat {
     return this.props.status;
   }
 
+  get priority(): string {
+    return this.props.priority.getValue();
+  }
+
   get open(): boolean {
     return this.props.open;
   }
@@ -220,15 +261,15 @@ export class Chat {
       return true;
     }
 
-    if (userRole === 'DIRECTOR') {
+    if (userRole === UserRole.DIRECTOR) {
       return true;
     }
 
-    if (userRole === 'ADVISOR' && userId === this.props.advisorId) {
+    if (userRole === UserRole.ADVISOR && userId === this.props.advisorId) {
       return true;
     }
 
-    if (userRole === 'ADVISOR' && !this.props.advisorId) {
+    if (userRole === UserRole.ADVISOR && !this.props.advisorId) {
       return true;
     }
 
