@@ -6,3 +6,5 @@ export * from './TransferChatUseCase';
 export * from './SetTypingStatusUseCase';
 export * from './CloseChatUseCase';
 export * from './GetPendingChatsUseCase';
+export * from './GetUserChatsUseCase';
+export * from './GetChatByIdUseCase';

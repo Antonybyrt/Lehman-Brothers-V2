@@ -13,8 +13,12 @@ import { ChatInput } from './ChatInput'
 import { CreateChatDialog } from '../dialogs/CreateChatDialog'
 import { TransferChatDialog } from '../dialogs/TransferChatDialog'
 
-export function ChatContainer() {
-  const chat = useChat()
+interface ChatContainerProps {
+  initialChatId?: string | null
+}
+
+export function ChatContainer({ initialChatId }: ChatContainerProps) {
+  const chat = useChat(initialChatId)
 
   if (chat.root.isLoading) {
     return (

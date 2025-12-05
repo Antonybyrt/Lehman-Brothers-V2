@@ -4,16 +4,15 @@ import {
   GetMessagesBeforeUseCase,
   CloseChatUseCase,
   TransferChatUseCase,
-  GetPendingChatsUseCase
+  GetPendingChatsUseCase,
+  GetUserChatsUseCase,
+  GetChatByIdUseCase
 } from '@lehman-brothers/application';
 import { exhaustive } from 'exhaustive';
 import { AuthenticatedRequest } from '../../middleware/authMiddleware';
 import {
   ChatRepository,
-  UserRepository,
-  ChatViewRepository,
-  UserViewRepository,
-  MessageRepository
+  ChatViewRepository
 } from '@lehman-brothers/application';
 import { WsServerService } from '../services/WsServerService';
 import { UserRole } from '@lehman-brothers/domain/values/UserRole';
@@ -25,11 +24,10 @@ export class ChatRestController {
     private readonly closeChatUseCase: CloseChatUseCase,
     private readonly transferChatUseCase: TransferChatUseCase,
     private readonly getPendingChatsUseCase: GetPendingChatsUseCase,
+    private readonly getUserChatsUseCase: GetUserChatsUseCase,
+    private readonly getChatByIdUseCase: GetChatByIdUseCase,
     private readonly chatRepository: ChatRepository,
-    private readonly userRepository: UserRepository,
     private readonly chatViewRepository: ChatViewRepository,
-    private readonly userViewRepository: UserViewRepository,
-    private readonly messageRepository: MessageRepository,
     private readonly wsServerService: WsServerService
   ) { }
 
@@ -107,61 +105,20 @@ export class ChatRestController {
       return;
     }
 
-    try {
-      let chats: any[] = [];
+    const result = await this.getUserChatsUseCase.execute({
+      userId,
+      userRole
+    });
 
-      if (userRole === UserRole.CLIENT) {
-        chats = await this.chatRepository.findByClientId(userId);
-      } else if (userRole === UserRole.ADVISOR) {
-        const assignedChats = await this.chatRepository.findByAdvisorId(userId);
-        const unassignedChats = await this.chatRepository.findUnassigned();
-
-        const chatMap = new Map();
-        [...assignedChats, ...unassignedChats].forEach(chat => {
-          chatMap.set(chat.id, chat);
-        });
-        chats = Array.from(chatMap.values());
-      } else {
-        chats = await this.chatRepository.findUnassigned();
-      }
-
-      const chatsData = await Promise.all(chats.map(async (chat) => {
-        const clientName = await this.userViewRepository.getFullNameById(chat.clientId) || 'Unknown Client';
-
-        let advisorName: string | undefined;
-        if (chat.advisorId) {
-          advisorName = await this.userViewRepository.getFullNameById(chat.advisorId) || 'Unknown Advisor';
-        }
-
-        const messages = await this.messageRepository.findByChatId(chat.id, 1);
-        const lastMessage = messages.length > 0 ? messages[0] : null;
-
-        return {
-          id: chat.id,
-          subject: chat.subject,
-          clientId: chat.clientId,
-          clientName,
-          advisorId: chat.advisorId,
-          advisorName,
-          status: chat.status,
-          priority: chat.priority,
-          createdAt: chat.createdAt.toISOString(),
-          updatedAt: chat.updatedAt.toISOString(),
-          lastMessage: lastMessage ? lastMessage.content : null,
-          lastMessageAt: lastMessage ? lastMessage.sentAt.toISOString() : null,
-          lastMessageAuthorId: lastMessage ? lastMessage.authorId : null,
-        };
-      }));
-
+    if (result.success) {
       res.status(200).json({
         success: true,
-        chats: chatsData
+        chats: result.chats
       });
-    } catch (error) {
-      console.error('[ChatRestController] Error getting user chats:', error);
+    } else {
       res.status(500).json({
         success: false,
-        error: 'Failed to retrieve chats'
+        error: result.error
       });
     }
   }
@@ -233,51 +190,34 @@ export class ChatRestController {
       return;
     }
 
-    try {
-      const chat = await this.chatRepository.findById(id);
+    const result = await this.getChatByIdUseCase.execute({
+      chatId: id,
+      userId,
+      userRole
+    });
 
-      if (!chat) {
-        res.status(404).json({
-          success: false,
-          error: 'Chat not found'
+    exhaustive(String(result.success), {
+      'true': () => {
+        res.status(200).json({
+          success: true,
+          chat: result.chat
         });
-        return;
-      }
-
-      const isAuthorized =
-        chat.clientId === userId ||
-        chat.advisorId === userId ||
-        (userRole === UserRole.ADVISOR && !chat.advisorId) || // Advisors can access unassigned chats
-        userRole === 'ADMIN';
-
-      if (!isAuthorized) {
-        res.status(403).json({
-          success: false,
-          error: 'Unauthorized access to this chat'
+      },
+      'false': () => {
+        const statusCode = exhaustive(String(result.errorType), {
+          'validation': () => 400,
+          'not_found': () => 404,
+          'unauthorized': () => 403,
+          'server': () => 500,
+          'undefined': () => 500
         });
-        return;
-      }
 
-      res.status(200).json({
-        success: true,
-        chat: {
-          id: chat.id,
-          subject: chat.subject,
-          clientId: chat.clientId,
-          advisorId: chat.advisorId,
-          status: chat.status,
-          priority: chat.priority,
-          createdAt: chat.createdAt.toISOString(),
-          updatedAt: chat.updatedAt.toISOString(),
-        }
-      });
-    } catch (error) {
-      console.error('[ChatRestController] Error getting chat:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to retrieve chat'
-      });
-    }
+        res.status(statusCode).json({
+          success: false,
+          error: result.error
+        });
+      }
+    });
   }
 
   /**
@@ -306,69 +246,44 @@ export class ChatRestController {
       return;
     }
 
-    // Check if user has access to this chat
-    try {
-      const chat = await this.chatRepository.findById(chatId);
+    // Get messages
+    const executeParams: any = {
+      chatId,
+      userId,
+      userRole,
+    };
 
-      if (!chat) {
-        res.status(404).json({
-          success: false,
-          error: 'Chat not found'
-        });
-        return;
-      }
-
-      const isAuthorized =
-        chat.clientId === userId ||
-        chat.advisorId === userId ||
-        (userRole === UserRole.ADVISOR && !chat.advisorId) || // Advisors can access unassigned chats
-        userRole === 'ADMIN';
-
-      if (!isAuthorized) {
-        res.status(403).json({
-          success: false,
-          error: 'Unauthorized access to this chat'
-        });
-        return;
-      }
-
-      // Get messages
-      const executeParams: any = {
-        chatId,
-        userId,
-        userRole,
-      };
-
-      if (beforeId) {
-        executeParams.beforeId = String(beforeId);
-      }
-
-      if (limit) {
-        executeParams.limit = parseInt(String(limit));
-      }
-
-      const result = await this.getMessagesBeforeUseCase.execute(executeParams);
-
-      if (!result.success) {
-        res.status(400).json({
-          success: false,
-          error: result.error
-        });
-        return;
-      }
-
-      res.status(200).json({
-        success: true,
-        messages: result.messages,
-        hasMore: result.hasMore
-      });
-    } catch (error) {
-      console.error('[ChatRestController] Error getting chat messages:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to retrieve messages'
-      });
+    if (beforeId) {
+      executeParams.beforeId = String(beforeId);
     }
+
+    if (limit) {
+      executeParams.limit = parseInt(String(limit));
+    }
+
+    const result = await this.getMessagesBeforeUseCase.execute(executeParams);
+
+    if (!result.success) {
+      const statusCode = exhaustive(String(result.errorType), {
+        'validation': () => 400,
+        'not_found': () => 404,
+        'unauthorized': () => 403,
+        'server': () => 500,
+        'undefined': () => 400
+      });
+
+      res.status(statusCode).json({
+        success: false,
+        error: result.error
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      messages: result.messages,
+      hasMore: result.hasMore
+    });
   }
 
   /**

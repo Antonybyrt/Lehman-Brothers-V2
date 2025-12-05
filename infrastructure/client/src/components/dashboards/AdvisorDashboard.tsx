@@ -27,6 +27,7 @@ import { formatDistanceToNow } from "date-fns"
 
 export default function AdvisorDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const { count: unreadChatsCount } = usePendingChatsCount()
 
 
@@ -81,7 +82,7 @@ export default function AdvisorDashboard() {
       }
     }
     fetchData()
-  }, [])
+  }, [unreadChatsCount])
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -242,7 +243,10 @@ export default function AdvisorDashboard() {
                         <p className="text-sm text-muted-foreground mb-3 truncate">
                           {chat.lastMessage || chat.subject}
                         </p>
-                        <Button size="sm" className="bg-primary/90 hover:bg-primary/80" onClick={() => setActiveTab('chats')}>
+                        <Button size="sm" className="bg-primary/90 hover:bg-primary/80" onClick={() => {
+                          setSelectedChatId(chat.id)
+                          setActiveTab('chats')
+                        }}>
                           Reply
                         </Button>
                       </div>
@@ -403,7 +407,7 @@ export default function AdvisorDashboard() {
           )}
 
           {activeTab === 'chats' && (
-            <ChatContainer />
+            <ChatContainer initialChatId={selectedChatId} />
           )}
 
           {activeTab === 'calculator' && (

@@ -44,7 +44,9 @@ import {
   TransferChatUseCase,
   SetTypingStatusUseCase,
   CloseChatUseCase,
-  GetPendingChatsUseCase
+  GetPendingChatsUseCase,
+  GetUserChatsUseCase,
+  GetChatByIdUseCase
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 
@@ -104,6 +106,8 @@ const transferChatUseCase = new TransferChatUseCase(chatRepository, userReposito
 const setTypingStatusUseCase = new SetTypingStatusUseCase(chatRepository);
 const closeChatUseCase = new CloseChatUseCase(chatRepository);
 const getPendingChatsUseCase = new GetPendingChatsUseCase(chatRepository, messageRepository, chatViewRepository);
+const getUserChatsUseCase = new GetUserChatsUseCase(chatRepository, userViewRepository, messageRepository);
+const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository);
 
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
@@ -115,11 +119,10 @@ const chatRestController = new ChatRestController(
   closeChatUseCase,
   transferChatUseCase,
   getPendingChatsUseCase,
+  getUserChatsUseCase,
+  getChatByIdUseCase,
   chatRepository,
-  userRepository,
   chatViewRepository,
-  userViewRepository,
-  messageRepository,
   wsService
 );
 
