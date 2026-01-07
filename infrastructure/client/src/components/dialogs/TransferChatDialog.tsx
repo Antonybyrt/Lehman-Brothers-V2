@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Users, X } from 'lucide-react'
 import { authService } from '@/services/authService'
 import toast from 'react-hot-toast'
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 interface User {
   id: string
@@ -34,7 +35,7 @@ export function TransferChatDialog({ isOpen, onClose, onTransfer, currentAdvisor
       if (response.success && response.users) {
         // Filtrer pour ne garder que les advisors (sauf l'advisor actuel)
         const advisorList = response.users.filter(
-          (user: User) => user.role === 'ADVISOR' && user.id !== currentAdvisorId
+          (user: User) => user.role === UserRole.ADVISOR && user.id !== currentAdvisorId
         )
         setAdvisors(advisorList)
       } else {
@@ -111,8 +112,8 @@ export function TransferChatDialog({ isOpen, onClose, onTransfer, currentAdvisor
                   key={advisor.id}
                   onClick={() => setSelectedAdvisorId(advisor.id)}
                   className={`w-full p-4 rounded-lg border-2 transition-all text-left ${selectedAdvisorId === advisor.id
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border hover:border-primary/50'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary/50'
                     }`}
                 >
                   <div className="flex items-center space-x-3">

@@ -8,12 +8,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export interface CreateChatRequest {
   subject: string;
   clientId?: string; // Optional: used by advisors to create chats for clients
+  priority?: string;
 }
 
 export interface CreateChatResponse {
   success: boolean;
   chatId?: string;
   subject?: string;
+  priority?: string;
   error?: string;
 }
 
@@ -36,9 +38,9 @@ export interface GetChatMessagesResponse {
   error?: string;
 }
 
-export interface GetPendingChatsCountResponse {
+export interface GetPendingChatsResponse {
   success: boolean;
-  count?: number;
+  chats?: Chat[];
   error?: string;
 }
 
@@ -183,16 +185,16 @@ class ChatService {
     }
   }
 
-  // Get count of chats pending advisor response
-  async getPendingChatsCount(): Promise<GetPendingChatsCountResponse> {
+  // Get chats pending advisor response
+  async getPendingChats(): Promise<GetPendingChatsResponse> {
     try {
-      const response = await this.api.get<GetPendingChatsCountResponse>('/chats/pending-count');
+      const response = await this.api.get<GetPendingChatsResponse>('/chats/pending');
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         return {
           success: false,
-          error: error.response.data.error || 'Failed to get pending chats count',
+          error: error.response.data.error || 'Failed to get pending chats',
         };
       }
       return {

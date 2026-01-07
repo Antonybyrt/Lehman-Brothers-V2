@@ -9,6 +9,8 @@ import {
 } from '@lehman-brothers/domain';
 import { exhaustive } from 'exhaustive';
 
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
+
 export interface TransferChatRequest {
   readonly chatId: string;
   readonly newAdvisorId: string;
@@ -65,7 +67,7 @@ export class TransferChatUseCase {
         throw new ValidationError('chat', 'Chat has no assigned advisor');
       }
 
-      const isDirector = request.requestingUserRole === 'DIRECTOR';
+      const isDirector = request.requestingUserRole === UserRole.DIRECTOR;
       const isCurrentAdvisor = chat.advisorId === request.requestingUserId;
 
       if (!isDirector && !isCurrentAdvisor) {
@@ -78,8 +80,8 @@ export class TransferChatUseCase {
       }
 
       const newAdvisorRole = newAdvisor.getRole().getValue();
-      if (newAdvisorRole !== 'ADVISOR') {
-        throw new InvalidUserRoleError(newAdvisorRole, ['ADVISOR']);
+      if (newAdvisorRole !== UserRole.ADVISOR) {
+        throw new InvalidUserRoleError(newAdvisorRole, [UserRole.ADVISOR]);
       }
 
       const previousAdvisorId = chat.advisorId;

@@ -19,6 +19,7 @@ import {
   NewMessageMessage,
   MessageReadMessage,
 } from '../../ws/types';
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 /**
  * WebSocket controller for chat

@@ -9,6 +9,7 @@ import {
   ValidationError
 } from '@lehman-brothers/domain';
 import { exhaustive } from 'exhaustive';
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 export interface SendMessageRequest {
   readonly chatId: string;
@@ -69,7 +70,7 @@ export class SendMessageUseCase {
       }
 
       let isFirstAdvisorResponse = false;
-      if (userRole === 'ADVISOR' && !chat.advisorId) {
+      if (userRole === UserRole.ADVISOR && !chat.advisorId) {
         const assignResult = chat.assignAdvisor(request.authorId);
         if (!assignResult.isSuccess()) {
           throw assignResult.getError();

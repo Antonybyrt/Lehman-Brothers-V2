@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -72,7 +73,7 @@ class AuthService {
       // Automatically set role to CLIENT if not provided
       const dataWithRole = {
         ...userData,
-        role: userData.role || 'CLIENT'
+        role: userData.role || UserRole.CLIENT
       };
 
       const response = await this.api.post('/auth/register', dataWithRole);

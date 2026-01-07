@@ -3,12 +3,17 @@
 /**
  * Statut d'une conversation
  */
-export type ChatStatus = 'OPEN' | 'TRANSFERRED' | 'CLOSED'
+export type ChatStatus = 'OPEN' | 'CLOSED'
 
 /**
  * Type d'onglet pour filtrer les chats
  */
 export type ChatTab = 'OPEN' | 'CLOSED'
+
+/**
+ *  Priority level of a chat
+ */
+export type ChatPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 
 /**
  * Statut de connexion WebSocket
@@ -26,8 +31,12 @@ export interface Chat {
   advisorId: string | null
   advisorName?: string
   status: ChatStatus
+  priority?: ChatPriority
   createdAt: string
   updatedAt: string
+  lastMessage?: string
+  lastMessageAt?: string
+  lastMessageAuthorId?: string
 }
 
 /**

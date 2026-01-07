@@ -12,6 +12,7 @@ export interface ChatView {
   advisorId: string | null;
   advisorName: string | null;
   status: string;
+  priority: string;
   createdAt: Date;
   updatedAt: Date;
 }
