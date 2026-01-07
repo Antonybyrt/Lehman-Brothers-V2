@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { LoginForm } from "@/components/LoginForm";
 import { Header } from "@/components/Header";
 import { Toaster } from "react-hot-toast";
+import { GetStaticPropsContext } from 'next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,4 +22,12 @@ export default function Login() {
       <Toaster />
     </div>
   );
+}
+
+export async function getStaticProps({ locale }: GetStaticPropsContext) {
+  return {
+    props: {
+      messages: (await import(`../../../messages/${locale}.json`)).default
+    }
+  };
 }

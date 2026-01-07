@@ -8,12 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { motion } from "framer-motion"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { authService, LoginRequest } from "@/services/authService"
+import { useTranslations } from 'next-intl'
 
 interface LoginFormProps {
   onSuccess?: () => void;
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
+  const t = useTranslations('auth.login')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -77,10 +79,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             </motion.div>
 
             <CardTitle className="text-2xl font-prestige font-bold text-foreground/90">
-              Lehman Brothers
+              {t('title')}
             </CardTitle>
             <CardDescription className="text-muted-foreground/80">
-              Welcome back to your account
+              {t('subtitle')}
             </CardDescription>
           </CardHeader>
 
@@ -108,14 +110,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground/80">
-                  Email Address
+                  {t('email')}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t('emailPlaceholder')}
                     value={loginData.email}
                     onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     className="pl-10 bg-background/60 border-border/50"
@@ -126,14 +128,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground/80">
-                  Password
+                  {t('password')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder={t('passwordPlaceholder')}
                     value={loginData.password}
                     onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     className="pl-10 pr-10 bg-background/60 border-border/50"
@@ -154,7 +156,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 className="w-full bg-primary/90 hover:bg-primary/80 shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {t('submit')}
               </Button>
             </form>
 
@@ -163,7 +165,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 onClick={() => window.location.href = '/register'}
                 className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors font-medium"
               >
-                Don&apos;t have an account? Create one
+                {t('noAccount')} {t('signUp')}
               </button>
             </div>
           </CardContent>

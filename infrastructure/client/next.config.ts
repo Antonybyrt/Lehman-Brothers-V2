@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   devIndicators: {
     buildActivity: true,
   },
+  i18n: {
+    locales: ['fr', 'en'],
+    defaultLocale: 'fr',
+  },
 };
 
 export default nextConfig;

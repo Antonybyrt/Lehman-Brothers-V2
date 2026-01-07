@@ -24,8 +24,11 @@ import { authService } from "@/services/authService"
 import { Chat } from "@/types/chat"
 import { useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
+import { useTranslations } from 'next-intl'
 
 export default function AdvisorDashboard() {
+  const t = useTranslations('dashboard.advisor')
+  const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const { count: unreadChatsCount } = usePendingChatsCount()
@@ -85,11 +88,11 @@ export default function AdvisorDashboard() {
   }, [unreadChatsCount])
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'chats', label: 'Chats', icon: MessageSquare },
-    { id: 'loans', label: 'Loans', icon: CreditCard },
-    { id: 'clients', label: 'Clients', icon: Users },
-    { id: 'calculator', label: 'Calculator', icon: Calculator }
+    { id: 'overview', label: t('tabs.overview'), icon: BarChart3 },
+    { id: 'chats', label: t('tabs.chats'), icon: MessageSquare },
+    { id: 'loans', label: t('tabs.loans'), icon: CreditCard },
+    { id: 'clients', label: t('tabs.clients'), icon: Users },
+    { id: 'calculator', label: t('tabs.analytics'), icon: Calculator }
   ]
 
   return (
@@ -110,10 +113,10 @@ export default function AdvisorDashboard() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl font-prestige font-bold text-foreground/90 mb-2">
-            Banking Advisor Space
+            {t('welcome')}
           </h1>
           <p className="text-muted-foreground/80 text-lg">
-            Support your clients in their financial projects
+            {t('title')}
           </p>
         </motion.div>
 
@@ -128,7 +131,7 @@ export default function AdvisorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Clients</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.totalClients')}</p>
                   <p className="text-2xl font-bold text-foreground">{stats.totalClients}</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
@@ -140,7 +143,7 @@ export default function AdvisorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Messages</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.pendingChats')}</p>
                   <p className="text-2xl font-bold text-foreground">{stats.pendingMessages}</p>
                 </div>
                 <MessageCircle className="h-8 w-8 text-blue-500" />
@@ -152,7 +155,7 @@ export default function AdvisorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Loans</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.activeLoans')}</p>
                   <p className="text-2xl font-bold text-foreground">{stats.activeLoans}</p>
                 </div>
                 <CreditCard className="h-8 w-8 text-green-500" />
@@ -164,7 +167,7 @@ export default function AdvisorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Monthly Revenue</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.monthlyRevenue')}</p>
                   <p className="text-2xl font-bold text-foreground">{stats.monthlyRevenue.toLocaleString('fr-FR')} €</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-purple-500" />
@@ -219,13 +222,13 @@ export default function AdvisorDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <MessageCircle className="h-5 w-5" />
-                    <span>Pending Messages</span>
+                    <span>{t('chats.title')}</span>
                   </CardTitle>
-                  <CardDescription>Client messages requiring a response</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {pendingChats.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">No pending messages</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('chats.noChats')}</p>
                   ) : (
                     pendingChats.map((chat) => (
                       <div key={chat.id} className="p-3 bg-background/60 rounded-lg border border-border/30">
@@ -247,7 +250,7 @@ export default function AdvisorDashboard() {
                           setSelectedChatId(chat.id)
                           setActiveTab('chats')
                         }}>
-                          Reply
+                          {tCommon('view')}
                         </Button>
                       </div>
                     ))
@@ -260,9 +263,9 @@ export default function AdvisorDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <CreditCard className="h-5 w-5" />
-                    <span>Active Loans</span>
+                    <span>{t('loans.title')}</span>
                   </CardTitle>
-                  <CardDescription>Tracking of ongoing loans</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {activeLoans.map((loan) => (
@@ -271,7 +274,7 @@ export default function AdvisorDashboard() {
                         <p className="font-medium text-foreground">{loan.client}</p>
                         <span className={`text-xs px-2 py-1 rounded-full ${loan.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                           }`}>
-                          {loan.status === 'active' ? 'Active' : 'Completed'}
+                          {loan.status === 'active' ? t('loans.active') : t('loans.completed')}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
@@ -305,13 +308,13 @@ export default function AdvisorDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center space-x-2">
                     <CreditCard className="h-5 w-5" />
-                    <span>Loan Management</span>
+                    <span>{t('loans.title')}</span>
                   </span>
                   <Button className="bg-primary/90 hover:bg-primary/80">
-                    New Loan
+                    {t('loans.noLoans')}
                   </Button>
                 </CardTitle>
-                <CardDescription>Grant and manage client loans</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -369,9 +372,9 @@ export default function AdvisorDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Users className="h-5 w-5" />
-                  <span>Client Portfolio</span>
+                  <span>{t('tabs.clients')}</span>
                 </CardTitle>
-                <CardDescription>Manage your client portfolio</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -390,13 +393,13 @@ export default function AdvisorDashboard() {
                       <div className="flex items-center space-x-2">
                         <span className={`text-xs px-2 py-1 rounded-full ${client.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                           }`}>
-                          {client.status === 'active' ? 'Active' : 'Inactive'}
+                          {client.status === 'active' ? t('chats.active') : t('chats.closed')}
                         </span>
                         <Button variant="outline" size="sm">
-                          Contact
+                          {tCommon('view')}
                         </Button>
                         <Button variant="outline" size="sm">
-                          Details
+                          {tCommon('view')}
                         </Button>
                       </div>
                     </div>

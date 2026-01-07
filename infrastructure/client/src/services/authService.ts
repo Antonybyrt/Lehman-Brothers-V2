@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { UserRole } from '@lehman-brothers/domain/values/UserRole';
+import { handleHttpError } from '@/utils/errorHandler';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://10.184.23.186:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface LoginRequest {
   email: string;
@@ -58,12 +59,20 @@ class AuthService {
       const response = await this.api.post('/auth/login', credentials);
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response?.data) {
-        return error.response.data;
+        // For non-404/500 errors, return the response data
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return error.response.data;
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred'
+        error: httpError.error
       };
     }
   }
@@ -79,17 +88,24 @@ class AuthService {
       const response = await this.api.post('/auth/register', dataWithRole);
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response?.data) {
-        return {
-          success: false,
-          error: error.response.data.error,
-          type: error.response.data.type || 'unknown'
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error,
+            type: error.response.data.type || 'unknown'
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
-        type: 'network'
+        error: httpError.error,
+        type: httpError.errorType || 'network'
       };
     }
   }
@@ -99,12 +115,19 @@ class AuthService {
       const response = await this.api.get(`/confirm-email/${encodeURIComponent(token)}`);
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response?.data) {
-        return error.response.data;
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return error.response.data;
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred'
+        error: httpError.error
       };
     }
   }
@@ -131,12 +154,19 @@ class AuthService {
       const response = await this.api.get('/auth/getrole');
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response?.data) {
-        return error.response.data;
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return error.response.data;
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred'
+        error: httpError.error
       };
     }
   }
@@ -146,12 +176,19 @@ class AuthService {
       const response = await this.api.get('/users');
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response?.data) {
-        return error.response.data;
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return error.response.data;
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred'
+        error: httpError.error
       };
     }
   }
