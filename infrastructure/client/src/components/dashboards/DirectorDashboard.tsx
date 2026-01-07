@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/Header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,11 +22,74 @@ import {
 } from "lucide-react"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 import { useTranslations } from 'next-intl'
+import { savingsBookService, SavingsRate, SavingsBookType } from "@/services/savingsBookService"
 
 export default function DirectorDashboard() {
   const t = useTranslations('dashboard.director')
   const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState('overview')
+  const [rates, setRates] = useState<SavingsRate[]>([])
+  const [loadingRates, setLoadingRates] = useState(false)
+  const [newRate, setNewRate] = useState<string>('')
+  const [selectedBookType, setSelectedBookType] = useState<SavingsBookType>('LIVRET_A')
+  const [message, setMessage] = useState('')
+  const [updatingRate, setUpdatingRate] = useState(false)
+
+  const currentRate = rates.find(r => r.bookType === selectedBookType)?.ratePercent || '0'
+  const currentRateValue = rates.find(r => r.bookType === selectedBookType)?.rate || 0
+
+  useEffect(() => {
+    loadRates()
+  }, [])
+
+  const loadRates = async () => {
+    try {
+      setLoadingRates(true)
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        savingsBookService.setAuthToken(token)
+      }
+      const response = await savingsBookService.getCurrentRates()
+      if (response.success && response.rates) {
+        setRates(response.rates)
+        // Set default new rate to current rate * 100 (percentage)
+        const livretARate = response.rates.find(r => r.bookType === 'LIVRET_A')
+        if (livretARate) {
+          setNewRate((livretARate.rate * 100).toString())
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load rates', error)
+    } finally {
+      setLoadingRates(false)
+    }
+  }
+
+  const handleUpdateRate = async () => {
+    try {
+      setUpdatingRate(true)
+      const rateValue = parseFloat(newRate)
+      // Convert percentage to decimal (e.g. 2.5% -> 0.025)
+      const decimalRate = rateValue / 100
+
+      const response = await savingsBookService.updateRate({
+        bookType: selectedBookType,
+        rate: decimalRate
+      })
+
+      if (response.success) {
+        await loadRates()
+        alert('Rate updated successfully')
+      } else {
+        alert(response.error || 'Failed to update rate')
+      }
+    } catch (error) {
+      console.error(error)
+      alert('An error occurred')
+    } finally {
+      setUpdatingRate(false)
+    }
+  }
 
   // Mock data for director dashboard
   const mockData = {
@@ -163,7 +226,7 @@ export default function DirectorDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t('management.savingsRate')}</p>
-                  <p className="text-2xl font-bold text-foreground">{mockData.bankStats.savingsRate}%</p>
+                  <p className="text-2xl font-bold text-foreground">{(currentRateValue * 100).toFixed(2)}%</p>
                 </div>
                 <Settings className="h-8 w-8 text-cyan-500" />
               </div>
@@ -413,8 +476,19 @@ export default function DirectorDashboard() {
                     <div className="p-4 bg-background/60 rounded-lg border border-border/30">
                       <h3 className="font-semibold text-foreground mb-3">Current Rate</h3>
                       <div className="text-center">
-                        <p className="text-4xl font-bold text-primary">{mockData.bankStats.savingsRate}%</p>
+                        <p className="text-4xl font-bold text-primary">{(currentRateValue * 100).toFixed(2)}%</p>
                         <p className="text-sm text-muted-foreground">Applied annual rate</p>
+                        <div className="mt-2 flex justify-center space-x-2">
+                          {(['LIVRET_A', 'LDD'] as const).map(type => (
+                            <button
+                              key={type}
+                              onClick={() => setSelectedBookType(type)}
+                              className={`px-3 py-1 rounded text-xs ${selectedBookType === type ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+                            >
+                              {type.replace('_', ' ')}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     <div className="p-4 bg-background/60 rounded-lg border border-border/30">
@@ -422,26 +496,28 @@ export default function DirectorDashboard() {
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Savings accounts</span>
-                          <span className="font-semibold">1,247</span>
+                          <span className="font-semibold">N/A</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Total amount</span>
-                          <span className="font-semibold">45.6M €</span>
+                          <span className="font-semibold">N/A</span>
                         </div>
                         <div className="flex justify-between border-t border-border/30 pt-2">
                           <span className="text-sm font-medium text-foreground">Annual interest</span>
-                          <span className="font-bold text-primary">1.14M €</span>
+                          <span className="font-bold text-primary">N/A</span>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">New Savings Rate (%)</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">New Savings Rate (%) for {selectedBookType.replace('_', ' ')}</label>
                       <input
                         type="number"
-                        step="0.1"
+                        step="0.01"
                         placeholder="2.5"
+                        value={newRate}
+                        onChange={(e) => setNewRate(e.target.value)}
                         className="w-full px-3 py-2 bg-background/60 border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                       />
                     </div>
@@ -457,11 +533,17 @@ export default function DirectorDashboard() {
                       <textarea
                         placeholder="Inform your clients about the rate change..."
                         rows={4}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
                         className="w-full px-3 py-2 bg-background/60 border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                       />
                     </div>
-                    <Button className="w-full bg-primary/90 hover:bg-primary/80">
-                      Modify Savings Rate
+                    <Button
+                      onClick={handleUpdateRate}
+                      disabled={updatingRate}
+                      className="w-full bg-primary/90 hover:bg-primary/80"
+                    >
+                      {updatingRate ? 'Updating...' : 'Modify Savings Rate'}
                     </Button>
                   </div>
                 </div>

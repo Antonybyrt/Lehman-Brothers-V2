@@ -6,27 +6,27 @@ export const createAccountRoutes = (accountController: AccountController): Route
   const router = Router();
 
   // Protected routes (require authentication)
-  router.post('/accounts', authMiddleware, (req: AuthenticatedRequest, res) => 
+  router.post('/accounts', authMiddleware, (req: AuthenticatedRequest, res) =>
     accountController.createAccount(req, res)
   );
 
-  router.get('/accounts', authMiddleware, (req: AuthenticatedRequest, res) => 
+  router.get('/accounts', authMiddleware, (req: AuthenticatedRequest, res) =>
     accountController.getUserAccounts(req, res)
   );
 
-  router.get('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) => 
+  router.get('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) =>
     accountController.getAccountById(req, res)
   );
 
-  router.patch('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) => 
+  router.patch('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) =>
     accountController.updateAccount(req, res)
   );
 
-  router.post('/accounts/:id/transfer', authMiddleware, (req: AuthenticatedRequest, res) => 
+  router.post('/accounts/:id/transfer', authMiddleware, (req: AuthenticatedRequest, res) =>
     accountController.transferAccount(req, res)
   );
 
-  router.delete('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) => 
+  router.delete('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) =>
     accountController.deleteAccount(req, res)
   );
 

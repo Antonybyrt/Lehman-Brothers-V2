@@ -11,7 +11,7 @@ export class AccountController {
     private readonly updateAccountUseCase: UpdateAccountUseCase,
     private readonly deleteAccountUseCase: DeleteAccountUseCase,
     private readonly transferAccountUseCase: TransferAccountUseCase
-  ) {}
+  ) { }
 
   public async createAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { name, isSavings, initialBalance } = req.body;

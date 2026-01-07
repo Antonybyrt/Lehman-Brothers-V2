@@ -75,6 +75,7 @@
         "accounts": "My Accounts",
         "transactions": "Transactions",
         "investments": "Investments",
+        "savings": "Savings",
         "chat": "Support"
       },
       "stats": {
@@ -86,9 +87,12 @@
       },
       "accounts": {
         "title": "My Accounts",
+        "savingsTitle": "My Savings Books",
         "createNew": "Create Account",
         "createSavings": "Create Savings Account",
         "noAccounts": "No accounts",
+        "noSavingsAccounts": "No savings books",
+        "createFirstSavings": "Create your first savings book to get started",
         "createFirst": "Create your first account to get started",
         "iban": "IBAN",
         "balance": "Balance",
@@ -102,7 +106,8 @@
         "to": "To",
         "amount": "Amount",
         "date": "Date",
-        "noTransactions": "No recent transactions"
+        "noTransactions": "No recent transactions",
+        "newTransfer": "New Transfer"
       },
       "investments": {
         "title": "Investment Portfolio",
@@ -283,4 +288,3 @@
     "goBack": "Go Back"
   }
 }
-

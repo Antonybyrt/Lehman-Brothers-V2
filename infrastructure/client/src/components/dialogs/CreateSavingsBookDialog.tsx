@@ -13,6 +13,7 @@ interface CreateSavingsBookDialogProps {
     isOpen: boolean
     onClose: () => void
     onSavingsBookCreated?: () => void
+    existingTypes?: SavingsBookType[]
 }
 
 const SAVINGS_BOOK_TYPES: { type: SavingsBookType; name: string; description: string; icon: React.ReactNode; color: string }[] = [
@@ -35,12 +36,27 @@ const SAVINGS_BOOK_TYPES: { type: SavingsBookType; name: string; description: st
 export function CreateSavingsBookDialog({
     isOpen,
     onClose,
-    onSavingsBookCreated
+    onSavingsBookCreated,
+    existingTypes = []
 }: CreateSavingsBookDialogProps) {
+    // Determine the first available type
+    const availableTypes = SAVINGS_BOOK_TYPES.filter(t => !existingTypes.includes(t.type));
+    const defaultType = availableTypes.length > 0 ? availableTypes[0].type : 'LIVRET_A';
+
     const [formData, setFormData] = useState({
         name: '',
-        type: 'LIVRET_A' as SavingsBookType
+        type: defaultType
     })
+
+    // Update default type when dialog opens or existingTypes changes
+    useEffect(() => {
+        if (isOpen) {
+            const currentAvailable = SAVINGS_BOOK_TYPES.filter(t => !existingTypes.includes(t.type));
+            if (currentAvailable.length > 0) {
+                setFormData(prev => ({ ...prev, type: currentAvailable[0].type }));
+            }
+        }
+    }, [isOpen, existingTypes]);
     const [rates, setRates] = useState<SavingsRate[]>([])
     const [loading, setLoading] = useState(false)
     const [loadingRates, setLoadingRates] = useState(true)
@@ -180,6 +196,10 @@ export function CreateSavingsBookDialog({
                                 </Label>
                                 <div className="grid grid-cols-2 gap-3">
                                     {SAVINGS_BOOK_TYPES.map((typeOption) => {
+                                        const isOwned = existingTypes.includes(typeOption.type);
+                                        // Skip rendering if already owned, or render disabled
+                                        if (isOwned) return null;
+
                                         const isSelected = formData.type === typeOption.type
                                         const rate = getCurrentRate(typeOption.type)
 
@@ -189,15 +209,15 @@ export function CreateSavingsBookDialog({
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, type: typeOption.type }))}
                                                 className={`relative p-4 rounded-lg border-2 transition-all duration-200 text-left ${isSelected
-                                                        ? typeOption.color === 'blue'
-                                                            ? 'border-blue-500 bg-blue-500/10'
-                                                            : 'border-emerald-500 bg-emerald-500/10'
-                                                        : 'border-border/50 bg-background/40 hover:border-border'
+                                                    ? typeOption.color === 'blue'
+                                                        ? 'border-blue-500 bg-blue-500/10'
+                                                        : 'border-emerald-500 bg-emerald-500/10'
+                                                    : 'border-border/50 bg-background/40 hover:border-border'
                                                     }`}
                                             >
                                                 <div className={`w-8 h-8 rounded-md flex items-center justify-center mb-2 ${typeOption.color === 'blue'
-                                                        ? 'bg-blue-500/20 text-blue-500'
-                                                        : 'bg-emerald-500/20 text-emerald-500'
+                                                    ? 'bg-blue-500/20 text-blue-500'
+                                                    : 'bg-emerald-500/20 text-emerald-500'
                                                     }`}>
                                                     {typeOption.icon}
                                                 </div>
@@ -206,8 +226,8 @@ export function CreateSavingsBookDialog({
 
                                                 {/* Current Rate Badge */}
                                                 <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium ${typeOption.color === 'blue'
-                                                        ? 'bg-blue-500/20 text-blue-600'
-                                                        : 'bg-emerald-500/20 text-emerald-600'
+                                                    ? 'bg-blue-500/20 text-blue-600'
+                                                    : 'bg-emerald-500/20 text-emerald-600'
                                                     }`}>
                                                     {loadingRates ? '...' : rate}
                                                 </div>
@@ -251,13 +271,13 @@ export function CreateSavingsBookDialog({
 
                             {/* Info Box */}
                             <div className={`p-4 rounded-lg ${selectedType?.color === 'blue'
-                                    ? 'bg-blue-500/10 border border-blue-500/30'
-                                    : 'bg-emerald-500/10 border border-emerald-500/30'
+                                ? 'bg-blue-500/10 border border-blue-500/30'
+                                : 'bg-emerald-500/10 border border-emerald-500/30'
                                 }`}>
                                 <div className="flex items-start space-x-3">
                                     <div className={`w-6 h-6 rounded-full flex items-center justify-center ${selectedType?.color === 'blue'
-                                            ? 'bg-blue-500/20 text-blue-500'
-                                            : 'bg-emerald-500/20 text-emerald-500'
+                                        ? 'bg-blue-500/20 text-blue-500'
+                                        : 'bg-emerald-500/20 text-emerald-500'
                                         }`}>
                                         ℹ️
                                     </div>
@@ -287,8 +307,8 @@ export function CreateSavingsBookDialog({
                                     type="submit"
                                     disabled={loading || !formData.name.trim()}
                                     className={`flex-1 text-white ${selectedType?.color === 'blue'
-                                            ? 'bg-blue-500 hover:bg-blue-600'
-                                            : 'bg-emerald-500 hover:bg-emerald-600'
+                                        ? 'bg-blue-500 hover:bg-blue-600'
+                                        : 'bg-emerald-500 hover:bg-emerald-600'
                                         }`}
                                 >
                                     {loading ? (

@@ -22,6 +22,17 @@ export interface SavingsRate {
     dailyRate: number;
 }
 
+export interface UpdateRateRequest {
+    bookType: SavingsBookType;
+    rate: number;
+}
+
+export interface UpdateRateResponse {
+    success: boolean;
+    message?: string;
+    error?: string;
+    rateId?: string;
+}
 export interface CreateSavingsBookRequest {
     name: string;
     type: SavingsBookType;
@@ -179,6 +190,25 @@ class SavingsBookService {
                 success: false,
                 error: 'Network error occurred',
                 type: 'network'
+            };
+        }
+    }
+
+    // Set savings rate (Director only)
+    async updateRate(data: UpdateRateRequest): Promise<UpdateRateResponse> {
+        try {
+            const response = await this.api.post('/savings-rates', data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as { response?: { data?: UpdateRateResponse } };
+                if (axiosError.response?.data) {
+                    return axiosError.response.data;
+                }
+            }
+            return {
+                success: false,
+                error: 'Network error occurred'
             };
         }
     }

@@ -75,6 +75,7 @@
         "accounts": "Mes comptes",
         "transactions": "Transactions",
         "investments": "Investissements",
+        "savings": "Épargne",
         "chat": "Support"
       },
       "stats": {
@@ -86,9 +87,12 @@
       },
       "accounts": {
         "title": "Mes comptes",
+        "savingsTitle": "Mes livrets d'épargne",
         "createNew": "Créer un compte",
         "createSavings": "Créer un compte épargne",
         "noAccounts": "Aucun compte",
+        "noSavingsAccounts": "Aucun livret d'épargne",
+        "createFirstSavings": "Créez votre premier livret d'épargne pour commencer",
         "createFirst": "Créez votre premier compte pour commencer",
         "iban": "IBAN",
         "balance": "Solde",
@@ -102,7 +106,8 @@
         "to": "Vers",
         "amount": "Montant",
         "date": "Date",
-        "noTransactions": "Aucune transaction récente"
+        "noTransactions": "Aucune transaction récente",
+        "newTransfer": "Nouveau virement"
       },
       "investments": {
         "title": "Portefeuille d'investissements",
@@ -283,4 +288,3 @@
     "goBack": "Retour"
   }
 }
-
