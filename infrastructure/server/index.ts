@@ -63,6 +63,7 @@ import {
   WithdrawFromSavingsBookUseCase
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
+import { InterestScheduler } from './scheduler';
 
 const app = express();
 const httpServer = createServer(app);
@@ -207,6 +208,13 @@ httpServer.listen(port, () => {
   console.log(`   PATCH http://localhost:${port}/accounts/:id (Protected)`);
   console.log(`   POST http://localhost:${port}/accounts/:id/transfer (Protected)`);
   console.log(`   DELETE http://localhost:${port}/accounts/:id (Protected)`);
+  console.log(`💰 Savings endpoints:`);
+  console.log(`   POST http://localhost:${port}/savings-books (Protected)`);
+  console.log(`   GET http://localhost:${port}/savings-books (Protected)`);
+  console.log(`   POST http://localhost:${port}/savings-books/:id/deposit (Protected)`);
+  console.log(`   POST http://localhost:${port}/savings-books/:id/withdraw (Protected)`);
+  console.log(`   GET http://localhost:${port}/savings-rates (Protected)`);
+  console.log(`   POST http://localhost:${port}/savings-rates (Protected - Director)`);
   console.log(`💬 Chat REST endpoints:`);
   console.log(`   POST http://localhost:${port}/chats (Protected)`);
   console.log(`   GET http://localhost:${port}/chats (Protected)`);
@@ -221,8 +229,13 @@ httpServer.listen(port, () => {
   console.log(`   Server → Client: message:created, chat:created, chat:updated, chat:closed`);
 });
 
+// Start automated daily interest scheduler
+const interestScheduler = new InterestScheduler(applyDailyInterestUseCase);
+interestScheduler.start();
+
 process.on('SIGINT', async () => {
   console.log('🛑 Shutting down server...');
+  interestScheduler.stop();
   wsService.close();
   await prisma.$disconnect();
   process.exit(0);
@@ -230,6 +243,7 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('🛑 Shutting down server...');
+  interestScheduler.stop();
   wsService.close();
   await prisma.$disconnect();
   process.exit(0);
