@@ -6,3 +6,4 @@ export * from './Iban';
 export * from './ChatSubject';
 export * from './MessageContent';
 export * from './ChatPriority';
+export * from './SavingsBookType';

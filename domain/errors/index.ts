@@ -27,3 +27,6 @@ export * from './chat/ChatAlreadyHasAdvisorError';
 export * from './chat/ChatTransferNotAllowedError';
 export * from './chat/MessageAlreadyDeletedError';
 export * from './chat/InvalidChatPriorityError';
+export * from './SavingsBookNotFoundError';
+export * from './InvalidSavingsBookTypeError';
+export * from './SavingsRateNotFoundError';

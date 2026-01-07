@@ -7,3 +7,6 @@ export * from './chat/MessageRepository';
 export * from './chat/MessageReadRepository';
 export * from './chat/ChatViewRepository';
 export * from './UserViewRepository';
+export * from './SavingsBookRepository';
+export * from './SavingsRateRepository';
+export * from './DailyInterestRepository';

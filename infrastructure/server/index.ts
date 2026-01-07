@@ -9,7 +9,9 @@ import {
   EmailConfirmationController,
   AccountController,
   ChatController,
-  ChatRestController
+  ChatRestController,
+  SavingsBookController,
+  SavingsRateController
 } from './adapters/controllers';
 import {
   PrismaUserRepository,
@@ -20,13 +22,17 @@ import {
   PrismaMessageRepository,
   PrismaMessageReadRepository,
   PrismaChatViewRepository,
-  PrismaUserViewRepository
+  PrismaUserViewRepository,
+  PrismaSavingsBookRepository,
+  PrismaSavingsRateRepository,
+  PrismaDailyInterestRepository
 } from './adapters/repositories';
 import {
   JwtAuthenticationService,
   NodemailerEmailService,
   WsServerService,
-  WsChatNotificationService
+  WsChatNotificationService,
+  WsSavingsNotificationService
 } from './adapters/services';
 import {
   RegisterUserUseCase,
@@ -47,9 +53,17 @@ import {
   CloseChatUseCase,
   GetPendingChatsUseCase,
   GetUserChatsUseCase,
-  GetChatByIdUseCase
+  GetChatByIdUseCase,
+  CreateSavingsBookUseCase,
+  GetUserSavingsBooksUseCase,
+  SetSavingsRateUseCase,
+  GetCurrentRatesUseCase,
+  ApplyDailyInterestUseCase,
+  DepositToSavingsBookUseCase,
+  WithdrawFromSavingsBookUseCase
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
+import { InterestScheduler } from './scheduler';
 
 const app = express();
 const httpServer = createServer(app);
@@ -73,6 +87,9 @@ const messageRepository = new PrismaMessageRepository(prisma);
 const messageReadRepository = new PrismaMessageReadRepository(prisma);
 const chatViewRepository = new PrismaChatViewRepository(prisma);
 const userViewRepository = new PrismaUserViewRepository(prisma);
+const savingsBookRepository = new PrismaSavingsBookRepository(prisma);
+const savingsRateRepository = new PrismaSavingsRateRepository(prisma);
+const dailyInterestRepository = new PrismaDailyInterestRepository(prisma);
 
 const authenticationService = new JwtAuthenticationService(
   process.env.JWT_SECRET || 'fallback-secret',
@@ -85,6 +102,7 @@ const wsService = new WsServerService(httpServer, authenticationService, userVie
 
 // Notification Service
 const notificationService = new WsChatNotificationService(wsService);
+const savingsNotificationService = new WsSavingsNotificationService(wsService, savingsBookRepository);
 
 // Auth use cases
 const registerUserUseCase = new RegisterUserUseCase(userRepository, emailConfirmationRepository, emailService);
@@ -110,6 +128,15 @@ const closeChatUseCase = new CloseChatUseCase(chatRepository);
 const getPendingChatsUseCase = new GetPendingChatsUseCase(chatRepository, messageRepository, chatViewRepository);
 const getUserChatsUseCase = new GetUserChatsUseCase(chatRepository, userViewRepository, messageRepository);
 const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository);
+
+// Savings use cases
+const createSavingsBookUseCase = new CreateSavingsBookUseCase(savingsBookRepository, userRepository);
+const getUserSavingsBooksUseCase = new GetUserSavingsBooksUseCase(savingsBookRepository);
+const setSavingsRateUseCase = new SetSavingsRateUseCase(savingsRateRepository, savingsBookRepository, userRepository, savingsNotificationService);
+const getCurrentRatesUseCase = new GetCurrentRatesUseCase(savingsRateRepository);
+const applyDailyInterestUseCase = new ApplyDailyInterestUseCase(savingsBookRepository, savingsRateRepository, dailyInterestRepository, userRepository);
+const depositToSavingsBookUseCase = new DepositToSavingsBookUseCase(savingsBookRepository, accountRepository);
+const withdrawFromSavingsBookUseCase = new WithdrawFromSavingsBookUseCase(savingsBookRepository, accountRepository);
 
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
@@ -140,8 +167,22 @@ const chatController = new ChatController(
   userViewRepository
 );
 
+// Savings Controllers
+const savingsBookController = new SavingsBookController(
+  createSavingsBookUseCase,
+  getUserSavingsBooksUseCase,
+  depositToSavingsBookUseCase,
+  withdrawFromSavingsBookUseCase,
+  getCurrentRatesUseCase
+);
+const savingsRateController = new SavingsRateController(
+  setSavingsRateUseCase,
+  applyDailyInterestUseCase,
+  getCurrentRatesUseCase
+);
+
 // Routes
-app.use(createAppRoutes(authController, emailConfirmationController, accountController, chatRestController));
+app.use(createAppRoutes(authController, emailConfirmationController, accountController, chatRestController, savingsBookController, savingsRateController));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -167,6 +208,13 @@ httpServer.listen(port, () => {
   console.log(`   PATCH http://localhost:${port}/accounts/:id (Protected)`);
   console.log(`   POST http://localhost:${port}/accounts/:id/transfer (Protected)`);
   console.log(`   DELETE http://localhost:${port}/accounts/:id (Protected)`);
+  console.log(`💰 Savings endpoints:`);
+  console.log(`   POST http://localhost:${port}/savings-books (Protected)`);
+  console.log(`   GET http://localhost:${port}/savings-books (Protected)`);
+  console.log(`   POST http://localhost:${port}/savings-books/:id/deposit (Protected)`);
+  console.log(`   POST http://localhost:${port}/savings-books/:id/withdraw (Protected)`);
+  console.log(`   GET http://localhost:${port}/savings-rates (Protected)`);
+  console.log(`   POST http://localhost:${port}/savings-rates (Protected - Director)`);
   console.log(`💬 Chat REST endpoints:`);
   console.log(`   POST http://localhost:${port}/chats (Protected)`);
   console.log(`   GET http://localhost:${port}/chats (Protected)`);
@@ -181,8 +229,13 @@ httpServer.listen(port, () => {
   console.log(`   Server → Client: message:created, chat:created, chat:updated, chat:closed`);
 });
 
+// Start automated daily interest scheduler
+const interestScheduler = new InterestScheduler(applyDailyInterestUseCase);
+interestScheduler.start();
+
 process.on('SIGINT', async () => {
   console.log('🛑 Shutting down server...');
+  interestScheduler.stop();
   wsService.close();
   await prisma.$disconnect();
   process.exit(0);
@@ -190,6 +243,7 @@ process.on('SIGINT', async () => {
 
 process.on('SIGTERM', async () => {
   console.log('🛑 Shutting down server...');
+  interestScheduler.stop();
   wsService.close();
   await prisma.$disconnect();
   process.exit(0);

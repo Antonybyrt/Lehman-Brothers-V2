@@ -3,3 +3,5 @@ export * from './EmailConfirmationController';
 export * from './AccountController';
 export * from './ChatWsController';
 export * from './ChatRestController';
+export * from './SavingsBookController';
+export * from './SavingsRateController';

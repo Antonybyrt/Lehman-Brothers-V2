@@ -5,3 +5,5 @@ export * from './Transaction';
 export * from './Chat';
 export * from './Message';
 export * from './MessageRead';
+export * from './SavingsBook';
+export * from './DailyInterest';

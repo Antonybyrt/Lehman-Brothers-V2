@@ -19,10 +19,13 @@ import {
   Loader2,
   Wallet,
   MessageSquare,
-  ArrowRightLeft
+  ArrowRightLeft,
+  BookOpen,
+  Leaf
 } from "lucide-react"
 import { accountService, Account } from "@/services/accountService"
-import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog } from "@/components/dialogs"
+import { savingsBookService, SavingsBook, SavingsRate } from "@/services/savingsBookService"
+import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog, CreateSavingsBookDialog } from "@/components/dialogs"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 import { useTranslations } from 'next-intl'
 
@@ -32,10 +35,14 @@ export default function ClientDashboard() {
   const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState('overview')
   const [accounts, setAccounts] = useState<Account[]>([])
+  const [savingsBooks, setSavingsBooks] = useState<SavingsBook[]>([])
+  const [savingsRates, setSavingsRates] = useState<SavingsRate[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingSavings, setLoadingSavings] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isSavingsDialogOpen, setIsSavingsDialogOpen] = useState(false)
+  const [isCreateSavingsBookDialogOpen, setIsCreateSavingsBookDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false)
@@ -58,6 +65,7 @@ export default function ClientDashboard() {
   }
 
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0)
+  const totalSavingsBalance = savingsBooks.reduce((sum, book) => sum + book.balance, 0)
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -89,7 +97,35 @@ export default function ClientDashboard() {
     }
 
     loadAccounts()
+    loadSavingsBooks()
   }, [router])
+
+  const loadSavingsBooks = async () => {
+    try {
+      setLoadingSavings(true)
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        savingsBookService.setAuthToken(token)
+      }
+
+      const [booksResponse, ratesResponse] = await Promise.all([
+        savingsBookService.getUserSavingsBooks(),
+        savingsBookService.getCurrentRates()
+      ])
+
+      if (booksResponse.success && booksResponse.savingsBooks) {
+        setSavingsBooks(booksResponse.savingsBooks)
+      }
+
+      if (ratesResponse.success && ratesResponse.rates) {
+        setSavingsRates(ratesResponse.rates)
+      }
+    } catch {
+      console.error('Failed to load savings books')
+    } finally {
+      setLoadingSavings(false)
+    }
+  }
 
   const handleAccountCreated = () => {
     // Reload accounts after creation
@@ -645,6 +681,12 @@ export default function ClientDashboard() {
         sourceAccount={selectedAccount}
         userAccounts={accounts}
         onTransferComplete={handleAccountCreated}
+      />
+
+      <CreateSavingsBookDialog
+        isOpen={isCreateSavingsBookDialogOpen}
+        onClose={() => setIsCreateSavingsBookDialogOpen(false)}
+        onSavingsBookCreated={loadSavingsBooks}
       />
     </div>
   )
