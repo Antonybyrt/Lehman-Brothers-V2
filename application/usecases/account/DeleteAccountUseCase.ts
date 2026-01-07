@@ -68,7 +68,7 @@ export class DeleteAccountUseCase {
           sourceAccountId: account.getId(),
           targetAccountId: targetAccount.getId(),
           amount: account.getBalance(),
-          type: 'DEBIT'
+          type: 'TRANSFER'
         });
 
         if (transactionResult.isFailure()) {

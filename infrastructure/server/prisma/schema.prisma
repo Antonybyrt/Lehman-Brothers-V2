@@ -77,7 +77,9 @@ model Transaction {
   id               String          @id @default(uuid())
   source_account_id String?
   target_account_id String?
+  target_iban      String?
   amount           Decimal         @db.Decimal(15, 2)
+  description      String?
   type             TransactionType
   created_at       DateTime        @default(now())
 
@@ -226,6 +228,7 @@ enum UserRole {
 enum TransactionType {
   DEBIT
   CREDIT
+  TRANSFER
 }
 
 enum OrderType {

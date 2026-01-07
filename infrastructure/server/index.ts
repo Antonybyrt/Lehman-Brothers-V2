@@ -37,6 +37,7 @@ import {
   GetAccountByIdUseCase,
   UpdateAccountUseCase,
   DeleteAccountUseCase,
+  TransferAccountUseCase,
   CreateChatUseCase,
   SendMessageUseCase,
   GetMessagesBeforeUseCase,
@@ -96,6 +97,7 @@ const getUserAccountsUseCase = new GetUserAccountsUseCase(accountRepository, use
 const getAccountByIdUseCase = new GetAccountByIdUseCase(accountRepository);
 const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
+const transferAccountUseCase = new TransferAccountUseCase(accountRepository, transactionRepository);
 
 // Chat use cases
 const createChatUseCase = new CreateChatUseCase(chatRepository, userRepository, chatViewRepository, notificationService);
@@ -112,6 +114,7 @@ const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository);
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
+const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase, transferAccountUseCase);
 const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase);
 const chatRestController = new ChatRestController(
   createChatUseCase,
@@ -163,6 +166,7 @@ httpServer.listen(port, () => {
   console.log(`   GET http://localhost:${port}/accounts (Protected)`);
   console.log(`   GET http://localhost:${port}/accounts/:id (Protected)`);
   console.log(`   PATCH http://localhost:${port}/accounts/:id (Protected)`);
+  console.log(`   POST http://localhost:${port}/accounts/:id/transfer (Protected)`);
   console.log(`   DELETE http://localhost:${port}/accounts/:id (Protected)`);
   console.log(`💬 Chat REST endpoints:`);
   console.log(`   POST http://localhost:${port}/chats (Protected)`);

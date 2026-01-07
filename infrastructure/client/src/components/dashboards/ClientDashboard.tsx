@@ -18,10 +18,13 @@ import {
   BarChart3,
   Loader2,
   Wallet,
-  MessageSquare
+  MessageSquare,
+  ArrowRightLeft
 } from "lucide-react"
 import { accountService, Account } from "@/services/accountService"
-import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog } from "@/components/dialogs"
+import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog } from "@/components/dialogs"
+  MessageSquare
+} from "lucide-react"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 
 export default function ClientDashboard() {
@@ -34,6 +37,7 @@ export default function ClientDashboard() {
   const [isSavingsDialogOpen, setIsSavingsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
 
   // Mock data for other sections (transactions, investments)
@@ -116,6 +120,11 @@ export default function ClientDashboard() {
   const handleDeleteAccount = (account: Account) => {
     setSelectedAccount(account)
     setIsDeleteDialogOpen(true)
+  }
+
+  const handleTransferAccount = (account: Account) => {
+    setSelectedAccount(account)
+    setIsTransferDialogOpen(true)
   }
 
   const tabs = [
@@ -416,6 +425,15 @@ export default function ClientDashboard() {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => handleTransferAccount(account)}
+                            className="text-primary hover:text-primary"
+                          >
+                            <ArrowRightLeft className="h-4 w-4 mr-1" />
+                            Transfer
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => handleEditAccount(account)}
                           >
                             <Settings className="h-4 w-4" />
@@ -618,6 +636,14 @@ export default function ClientDashboard() {
         accountToDelete={selectedAccount}
         userAccounts={accounts}
         onAccountDeleted={handleAccountCreated}
+      />
+
+      <TransferAccountDialog
+        isOpen={isTransferDialogOpen}
+        onClose={() => setIsTransferDialogOpen(false)}
+        sourceAccount={selectedAccount}
+        userAccounts={accounts}
+        onTransferComplete={handleAccountCreated}
       />
     </div>
   )
