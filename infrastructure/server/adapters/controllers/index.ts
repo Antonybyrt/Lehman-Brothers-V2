@@ -6,3 +6,4 @@ export * from './ChatWsController';
 export * from './ChatRestController';
 export * from './SavingsBookController';
 export * from './SavingsRateController';
+export * from './InvestmentController';

@@ -61,4 +61,29 @@ export class Order {
       status: OrderStatus.CANCELLED
     });
   }
+  public static fromPersistence(data: any): Order {
+    return new Order({
+      id: data.id,
+      userId: data.userId,
+      stockId: data.stockId,
+      type: data.type,
+      quantity: Quantity.create(data.quantity).getValue(),
+      limitPrice: Money.create(data.limitPrice).getValue(),
+      status: data.status,
+      timestamp: data.createdAt
+    });
+  }
+
+  public toPersistence() {
+    return {
+      id: this.props.id,
+      userId: this.props.userId,
+      stockId: this.props.stockId,
+      type: this.props.type,
+      quantity: this.props.quantity.getValue(),
+      limitPrice: this.props.limitPrice.getAmountInCents(),
+      status: this.props.status,
+      createdAt: this.props.timestamp
+    };
+  }
 }

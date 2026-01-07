@@ -21,6 +21,7 @@ model User {
   // Relations
   accounts    Account[]
   orders      Order[]
+  portfolio   Portfolio[]
   loans       Loan[]
   chats_as_client Chat[] @relation("ClientChats")
   chats_as_advisor Chat[] @relation("AdvisorChats")
@@ -122,34 +123,69 @@ model Transaction {
 }
 
 model Stock {
-  id         String   @id @default(uuid())
-  name       String
-  symbol     String   @unique
-  available  Boolean  @default(true)
-  created_at DateTime @default(now())
+  id            String   @id @default(uuid())
+  name          String
+  symbol        String   @unique
+  isin          String   @unique
+  current_price Int      @map("current_price") // Stored in cents
+  active        Boolean  @default(true)
+  created_at    DateTime @default(now())
 
   // Relations
-  orders Order[]
+  orders    Order[]
+  portfolio Portfolio[]
 
   @@map("stocks")
 }
 
 model Order {
-  id         String      @id @default(uuid())
+  id          String      @id @default(uuid())
+  user_id     String
+  stock_id    String
+  type        OrderType
+  limit_price Int         @map("limit_price") // Stored in cents
+  quantity    Int
+  fee         Int         @default(0) // Stored in cents
+  status      OrderStatus @default(PENDING)
+  created_at  DateTime    @default(now())
+
+  // Relations
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  stock Stock @relation(fields: [stock_id], references: [id], onDelete: Cascade)
+  buy_trades  Trade[] @relation("BuyTrades")
+  sell_trades Trade[] @relation("SellTrades")
+
+  @@map("orders")
+}
+
+model Portfolio {
   user_id    String
   stock_id   String
-  type       OrderType
-  unit_price Decimal     @db.Decimal(10, 2)
   quantity   Int
-  fee        Decimal     @default(1.00) @db.Decimal(10, 2)
-  status     OrderStatus @default(PENDING)
-  created_at DateTime    @default(now())
+  updated_at DateTime @updatedAt
 
   // Relations
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   stock Stock @relation(fields: [stock_id], references: [id], onDelete: Cascade)
 
-  @@map("orders")
+  @@id([user_id, stock_id])
+  @@map("portfolios")
+}
+
+model Trade {
+  id            String   @id @default(uuid())
+  buy_order_id  String
+  sell_order_id String
+  price         Int      // Execution price in cents
+  quantity      Int
+  fee           Int      // Fee in cents
+  timestamp     DateTime @default(now())
+
+  // Relations
+  buy_order  Order @relation("BuyTrades", fields: [buy_order_id], references: [id])
+  sell_order Order @relation("SellTrades", fields: [sell_order_id], references: [id])
+
+  @@map("trades")
 }
 
 model Loan {
@@ -270,7 +306,7 @@ enum OrderType {
 enum OrderStatus {
   PENDING
   EXECUTED
-  CANCELED
+  CANCELLED
 }
 
 enum SavingsBookType {

@@ -5,8 +5,9 @@ import { createEmailConfirmationRoutes } from './emailConfirmationRoutes';
 import { createAccountRoutes } from './accountRoutes';
 import { createTransactionRoutes } from './transactionRoutes';
 import { createChatRoutes } from './chatRoutes';
+import { createInvestmentRoutes } from './investment.routes';
 import { createSavingsRoutes } from './savingsRoutes';
-import { AuthController, EmailConfirmationController, AccountController, TransactionController, ChatRestController, SavingsBookController, SavingsRateController } from '../adapters/controllers';
+import { AuthController, EmailConfirmationController, AccountController, TransactionController, ChatRestController, InvestmentController, SavingsBookController, SavingsRateController } from '../adapters/controllers';
 
 export const createAppRoutes = (
   authController: AuthController,
@@ -14,6 +15,7 @@ export const createAppRoutes = (
   accountController: AccountController,
   transactionController: TransactionController,
   chatRestController: ChatRestController,
+  investmentController: InvestmentController,
   savingsBookController: SavingsBookController,
   savingsRateController: SavingsRateController
 ): Router => {
@@ -26,6 +28,7 @@ export const createAppRoutes = (
   router.use(createAccountRoutes(accountController));
   router.use(createTransactionRoutes(transactionController));
   router.use(createChatRoutes(chatRestController));
+  router.use('/investment', createInvestmentRoutes(investmentController));
   router.use(createSavingsRoutes(savingsBookController, savingsRateController));
 
   return router;

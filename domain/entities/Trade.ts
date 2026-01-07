@@ -42,4 +42,44 @@ export class Trade {
   public getQuantity(): Quantity { return this.props.quantity; }
   public getFee(): Money { return this.props.fee; }
   public getTimestamp(): Date { return this.props.timestamp; }
+
+  public toPersistence(): {
+    id: string;
+    buyOrderId: string;
+    sellOrderId: string;
+    executionPrice: number;
+    quantity: number;
+    fee: number;
+    timestamp: Date;
+  } {
+    return {
+      id: this.props.id,
+      buyOrderId: this.props.buyOrderId,
+      sellOrderId: this.props.sellOrderId,
+      executionPrice: this.props.executionPrice.getAmountInCents(),
+      quantity: this.props.quantity.getValue(),
+      fee: this.props.fee.getAmountInCents(),
+      timestamp: this.props.timestamp,
+    };
+  }
+
+  public static fromPersistence(data: {
+    id: string;
+    buyOrderId: string;
+    sellOrderId: string;
+    executionPrice: number;
+    quantity: number;
+    fee: number;
+    timestamp: Date;
+  }): Trade {
+    return new Trade({
+      id: data.id,
+      buyOrderId: data.buyOrderId,
+      sellOrderId: data.sellOrderId,
+      executionPrice: Money.create(data.executionPrice).getValue(),
+      quantity: Quantity.create(data.quantity).getValue(),
+      fee: Money.create(data.fee).getValue(),
+      timestamp: data.timestamp,
+    });
+  }
 }

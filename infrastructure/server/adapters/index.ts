@@ -1,3 +1,3 @@
-export * from './adapters/repositories';
-export * from './adapters/services';
-export * from './adapters/controllers';
+export * from './repositories';
+export * from './services';
+export * from './controllers';

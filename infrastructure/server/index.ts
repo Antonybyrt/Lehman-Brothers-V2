@@ -24,6 +24,9 @@ import {
   PrismaMessageReadRepository,
   PrismaChatViewRepository,
   PrismaUserViewRepository,
+  PrismaStockRepository,
+  PrismaOrderRepository,
+  PrismaPortfolioRepository,
   PrismaSavingsBookRepository,
   PrismaSavingsRateRepository,
   PrismaDailyInterestRepository
@@ -54,6 +57,12 @@ import {
   CloseChatUseCase,
   GetPendingChatsUseCase,
   GetUserChatsUseCase,
+  CreateStockUseCase,
+  ListStocksUseCase,
+  UpdateStockStatusUseCase,
+  PlaceOrderUseCase,
+  CancelOrderUseCase,
+  GetUserPortfolioUseCase,
   GetChatByIdUseCase,
   CreateSavingsBookUseCase,
   GetUserSavingsBooksUseCase,
@@ -66,6 +75,7 @@ import {
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 import { InterestScheduler } from './scheduler';
+import { InvestmentController } from './adapters/controllers/InvestmentController';
 
 const app = express();
 const httpServer = createServer(app);
@@ -89,6 +99,9 @@ const messageRepository = new PrismaMessageRepository(prisma);
 const messageReadRepository = new PrismaMessageReadRepository(prisma);
 const chatViewRepository = new PrismaChatViewRepository(prisma);
 const userViewRepository = new PrismaUserViewRepository(prisma);
+const stockRepository = new PrismaStockRepository(prisma);
+const orderRepository = new PrismaOrderRepository(prisma);
+const portfolioRepository = new PrismaPortfolioRepository(prisma);
 const savingsBookRepository = new PrismaSavingsBookRepository(prisma);
 const savingsRateRepository = new PrismaSavingsRateRepository(prisma);
 const dailyInterestRepository = new PrismaDailyInterestRepository(prisma);
@@ -118,6 +131,14 @@ const getAccountByIdUseCase = new GetAccountByIdUseCase(accountRepository);
 const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
 const transferAccountUseCase = new TransferAccountUseCase(accountRepository, transactionRepository);
+
+// Investment use cases
+const createStockUseCase = new CreateStockUseCase(stockRepository, portfolioRepository, userRepository);
+const listStocksUseCase = new ListStocksUseCase(stockRepository, userRepository);
+const updateStockStatusUseCase = new UpdateStockStatusUseCase(stockRepository, userRepository);
+const placeOrderUseCase = new PlaceOrderUseCase(orderRepository, stockRepository, portfolioRepository, accountRepository);
+const cancelOrderUseCase = new CancelOrderUseCase(orderRepository, portfolioRepository, accountRepository);
+const getUserPortfolioUseCase = new GetUserPortfolioUseCase(portfolioRepository);
 
 // Transaction use cases
 const getUserTransactionsUseCase = new GetUserTransactionsUseCase(transactionRepository, accountRepository);
@@ -160,6 +181,14 @@ const chatRestController = new ChatRestController(
   chatViewRepository,
   wsService
 );
+const investmentController = new InvestmentController(
+  createStockUseCase,
+  listStocksUseCase,
+  updateStockStatusUseCase,
+  placeOrderUseCase,
+  cancelOrderUseCase,
+  getUserPortfolioUseCase
+);
 
 // WebSocket Controller
 const chatController = new ChatController(
@@ -188,7 +217,7 @@ const savingsRateController = new SavingsRateController(
 );
 
 // Routes
-app.use(createAppRoutes(authController, emailConfirmationController, accountController, transactionController, chatRestController, savingsBookController, savingsRateController));
+app.use(createAppRoutes(authController, emailConfirmationController, accountController, transactionController, chatRestController, investmentController, savingsBookController, savingsRateController));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
