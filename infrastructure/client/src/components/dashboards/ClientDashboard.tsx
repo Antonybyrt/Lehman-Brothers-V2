@@ -19,22 +19,27 @@ import {
   Loader2,
   Wallet,
   MessageSquare,
-  ArrowRightLeft
+  ArrowRightLeft,
+  BookOpen,
+  Leaf
 } from "lucide-react"
 import { accountService, Account } from "@/services/accountService"
-import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog } from "@/components/dialogs"
-  MessageSquare
-} from "lucide-react"
+import { savingsBookService, SavingsBook, SavingsRate } from "@/services/savingsBookService"
+import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog, CreateSavingsBookDialog } from "@/components/dialogs"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 
 export default function ClientDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
   const [accounts, setAccounts] = useState<Account[]>([])
+  const [savingsBooks, setSavingsBooks] = useState<SavingsBook[]>([])
+  const [savingsRates, setSavingsRates] = useState<SavingsRate[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingSavings, setLoadingSavings] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isSavingsDialogOpen, setIsSavingsDialogOpen] = useState(false)
+  const [isCreateSavingsBookDialogOpen, setIsCreateSavingsBookDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false)
@@ -57,6 +62,7 @@ export default function ClientDashboard() {
   }
 
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0)
+  const totalSavingsBalance = savingsBooks.reduce((sum, book) => sum + book.balance, 0)
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -88,7 +94,35 @@ export default function ClientDashboard() {
     }
 
     loadAccounts()
+    loadSavingsBooks()
   }, [router])
+
+  const loadSavingsBooks = async () => {
+    try {
+      setLoadingSavings(true)
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        savingsBookService.setAuthToken(token)
+      }
+
+      const [booksResponse, ratesResponse] = await Promise.all([
+        savingsBookService.getUserSavingsBooks(),
+        savingsBookService.getCurrentRates()
+      ])
+
+      if (booksResponse.success && booksResponse.savingsBooks) {
+        setSavingsBooks(booksResponse.savingsBooks)
+      }
+
+      if (ratesResponse.success && ratesResponse.rates) {
+        setSavingsRates(ratesResponse.rates)
+      }
+    } catch {
+      console.error('Failed to load savings books')
+    } finally {
+      setLoadingSavings(false)
+    }
+  }
 
   const handleAccountCreated = () => {
     // Reload accounts after creation
@@ -184,10 +218,10 @@ export default function ClientDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Monthly Savings</p>
-                  <p className="text-2xl font-bold text-foreground">{mockData.monthlySavings.toLocaleString('fr-FR')} €</p>
+                  <p className="text-sm text-muted-foreground">Savings Books</p>
+                  <p className="text-2xl font-bold text-foreground">{totalSavingsBalance.toLocaleString('fr-FR')} €</p>
                 </div>
-                <PiggyBank className="h-8 w-8 text-green-500" />
+                <PiggyBank className="h-8 w-8 text-emerald-500" />
               </div>
             </CardContent>
           </Card>
@@ -509,82 +543,129 @@ export default function ClientDashboard() {
           {activeTab === 'savings' && (
             <Card className="border-0 shadow-lg bg-background/90 backdrop-blur-xl">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <PiggyBank className="h-5 w-5" />
-                  <span>Savings Accounts</span>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <PiggyBank className="h-5 w-5" />
+                    <span>Savings Books</span>
+                  </span>
+                  <Button
+                    onClick={() => setIsCreateSavingsBookDialogOpen(true)}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Open a Savings Book
+                  </Button>
                 </CardTitle>
-                <CardDescription>Your interest-bearing accounts</CardDescription>
+                <CardDescription>Livret A and LDD - Earn interest on your savings</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {loading ? (
+                  {/* Current Rates Banner */}
+                  {savingsRates.length > 0 && (
+                    <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-lg border border-emerald-500/20 mb-6">
+                      <p className="text-sm font-medium text-foreground mb-3">Current Interest Rates</p>
+                      <div className="flex space-x-4">
+                        {savingsRates.map((rate) => (
+                          <div key={rate.bookType} className="flex items-center space-x-2">
+                            <div className={`w-6 h-6 rounded-md flex items-center justify-center ${rate.bookType === 'LIVRET_A' ? 'bg-blue-500/20 text-blue-500' : 'bg-emerald-500/20 text-emerald-500'
+                              }`}>
+                              {rate.bookType === 'LIVRET_A' ? <BookOpen className="h-3 w-3" /> : <Leaf className="h-3 w-3" />}
+                            </div>
+                            <span className="text-sm text-muted-foreground">{rate.bookType === 'LIVRET_A' ? 'Livret A' : 'LDD'}:</span>
+                            <span className="font-semibold text-foreground">{rate.ratePercent}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {loadingSavings ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin" />
-                      <span className="ml-2">Loading accounts...</span>
+                      <span className="ml-2">Loading savings books...</span>
                     </div>
-                  ) : error ? (
-                    <div className="text-center py-8 text-red-500">
-                      <p>{error}</p>
-                    </div>
-                  ) : accounts.filter(account => account.isSavings).length === 0 ? (
+                  ) : savingsBooks.length === 0 ? (
                     <motion.div
                       className="text-center py-8"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6 }}
                     >
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-full flex items-center justify-center mb-4">
-                        <PiggyBank className="h-8 w-8 text-blue-500" />
+                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-emerald-500/20 to-blue-500/10 rounded-full flex items-center justify-center mb-4">
+                        <PiggyBank className="h-8 w-8 text-emerald-500" />
                       </div>
 
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No savings accounts
+                        No savings books yet
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Open a savings account to grow your money
+                        Open a Livret A or LDD to start growing your savings with tax-free interest
                       </p>
 
                       <Button
-                        onClick={() => setIsSavingsDialogOpen(true)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+                        onClick={() => setIsCreateSavingsBookDialogOpen(true)}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg"
                       >
                         <PiggyBank className="mr-2 h-4 w-4" />
-                        Open Savings Account
+                        Open Savings Book
                       </Button>
                     </motion.div>
                   ) : (
-                    accounts.filter(account => account.isSavings).map((account) => (
-                      <div key={account.id} className="p-4 bg-background/60 rounded-lg border border-border/30">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <p className="font-semibold text-foreground">{account.name}</p>
-                            <p className="text-sm text-muted-foreground">{account.iban}</p>
+                    savingsBooks.map((book) => {
+                      const rate = savingsRates.find(r => r.bookType === book.type)
+                      const isLivretA = book.type === 'LIVRET_A'
+
+                      return (
+                        <motion.div
+                          key={book.id}
+                          className="p-4 bg-background/60 rounded-lg border border-border/30"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isLivretA
+                                ? 'bg-blue-500/20 text-blue-500'
+                                : 'bg-emerald-500/20 text-emerald-500'
+                                }`}>
+                                {isLivretA ? <BookOpen className="h-5 w-5" /> : <Leaf className="h-5 w-5" />}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-foreground">{book.name}</p>
+                                <p className="text-sm text-muted-foreground">{book.iban}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-foreground">{book.balance.toLocaleString('fr-FR')} €</p>
+                              <p className={`text-sm ${isLivretA ? 'text-blue-600' : 'text-emerald-600'}`}>
+                                {book.typeDisplayName || (isLivretA ? 'Livret A' : 'LDD')}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-foreground">{account.balance.toLocaleString('fr-FR')} €</p>
-                            <p className="text-sm text-green-600">Savings Account</p>
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-3 bg-background/40 rounded-lg">
+                              <p className="text-sm text-muted-foreground">Type</p>
+                              <p className={`font-semibold ${isLivretA ? 'text-blue-600' : 'text-emerald-600'}`}>
+                                {isLivretA ? 'Livret A' : 'LDD'}
+                              </p>
+                            </div>
+                            <div className="text-center p-3 bg-background/40 rounded-lg">
+                              <p className="text-sm text-muted-foreground">Interest Rate</p>
+                              <p className="font-semibold text-green-600">
+                                {rate?.ratePercent || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="text-center p-3 bg-background/40 rounded-lg">
+                              <p className="text-sm text-muted-foreground">Created</p>
+                              <p className="font-semibold text-muted-foreground">
+                                {new Date(book.createdAt).toLocaleDateString('fr-FR')}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="text-center p-3 bg-background/40 rounded-lg">
-                            <p className="text-sm text-muted-foreground">Account Type</p>
-                            <p className="font-semibold text-green-600">Savings</p>
-                          </div>
-                          <div className="text-center p-3 bg-background/40 rounded-lg">
-                            <p className="text-sm text-muted-foreground">Created</p>
-                            <p className="font-semibold text-muted-foreground">{new Date(account.createdAt).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))
+                        </motion.div>
+                      )
+                    })
                   )}
-                  <Button
-                    onClick={() => setIsSavingsDialogOpen(true)}
-                    className="w-full bg-primary/90 hover:bg-primary/80"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Open a Savings Account
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -644,6 +725,12 @@ export default function ClientDashboard() {
         sourceAccount={selectedAccount}
         userAccounts={accounts}
         onTransferComplete={handleAccountCreated}
+      />
+
+      <CreateSavingsBookDialog
+        isOpen={isCreateSavingsBookDialogOpen}
+        onClose={() => setIsCreateSavingsBookDialogOpen(false)}
+        onSavingsBookCreated={loadSavingsBooks}
       />
     </div>
   )

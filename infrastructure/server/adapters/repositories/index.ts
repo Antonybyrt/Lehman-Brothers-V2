@@ -7,3 +7,6 @@ export * from './PrismaMessageRepository';
 export * from './PrismaMessageReadRepository';
 export * from './PrismaChatViewRepository';
 export * from './PrismaUserViewRepository';
+export * from './PrismaSavingsBookRepository';
+export * from './PrismaSavingsRateRepository';
+export * from './PrismaDailyInterestRepository';

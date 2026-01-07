@@ -4,7 +4,7 @@
  */
 
 // Types d'événements WebSocket
-export type WsEventType = 'join' | 'typing' | 'message:new' | 'message:read' | 'message:created' | 'chat:created' | 'chat:updated' | 'chat:closed' | 'error' | 'pong';
+export type WsEventType = 'join' | 'typing' | 'message:new' | 'message:read' | 'message:created' | 'chat:created' | 'chat:updated' | 'chat:closed' | 'error' | 'pong' | 'savings:rate_changed';
 
 // Message de base WebSocket
 export interface WsMessage<T = any> {
@@ -138,6 +138,14 @@ export type ClientMessage =
   | NewMessageMessage
   | MessageReadMessage;
 
+// Serveur notifie les clients d'un changement de taux d'épargne
+export interface SavingsRateChangedPayload {
+  bookType: string;
+  oldRate: number;
+  newRate: number;
+  effectiveDate: string;
+}
+
 // Union de tous les messages serveur -> client
 export type ServerMessage = WsMessage<
   | JoinedChatPayload
@@ -146,6 +154,7 @@ export type ServerMessage = WsMessage<
   | MessageReadBroadcastPayload
   | ChatCreatedPayload
   | ChatUpdatedPayload
+  | SavingsRateChangedPayload
   | ErrorPayload
   | undefined
 >;

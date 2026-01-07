@@ -28,6 +28,7 @@ model User {
   messages    Message[]
   savings_rates_updated SavingsRate[]
   message_reads         MessageRead[] @relation("UserReads")
+  savings_books         SavingsBook[]
 
   @@map("users")
 }
@@ -61,16 +62,46 @@ model Account {
 }
 
 model SavingsRate {
-  id            String   @id @default(uuid())
-  rate          Decimal  @db.Decimal(5, 4)
+  id            String          @id @default(uuid())
+  rate          Decimal         @db.Decimal(5, 4)
+  book_type     SavingsBookType
   effective_date DateTime
   updated_by    String
-  created_at    DateTime @default(now())
+  created_at    DateTime        @default(now())
 
   // Relations
   updated_by_user User @relation(fields: [updated_by], references: [id])
 
   @@map("savings_rates")
+}
+
+model SavingsBook {
+  id         String          @id @default(uuid())
+  user_id    String
+  iban       String          @unique
+  name       String
+  balance    Decimal         @default(0.00) @db.Decimal(15, 2)
+  type       SavingsBookType
+  created_at DateTime        @default(now())
+
+  // Relations
+  user            User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  daily_interests DailyInterest[]
+
+  @@map("savings_books")
+}
+
+model DailyInterest {
+  id              String   @id @default(uuid())
+  savings_book_id String
+  amount          Decimal  @db.Decimal(15, 4)
+  rate            Decimal  @db.Decimal(10, 8)
+  applied_at      DateTime @default(now())
+
+  // Relations
+  savings_book SavingsBook @relation(fields: [savings_book_id], references: [id], onDelete: Cascade)
+
+  @@map("daily_interests")
 }
 
 model Transaction {
@@ -234,4 +265,9 @@ enum OrderStatus {
   PENDING
   EXECUTED
   CANCELED
+}
+
+enum SavingsBookType {
+  LIVRET_A
+  LDD
 }

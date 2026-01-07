@@ -9,7 +9,9 @@ import {
   EmailConfirmationController,
   AccountController,
   ChatController,
-  ChatRestController
+  ChatRestController,
+  SavingsBookController,
+  SavingsRateController
 } from './adapters/controllers';
 import {
   PrismaUserRepository,
@@ -20,13 +22,17 @@ import {
   PrismaMessageRepository,
   PrismaMessageReadRepository,
   PrismaChatViewRepository,
-  PrismaUserViewRepository
+  PrismaUserViewRepository,
+  PrismaSavingsBookRepository,
+  PrismaSavingsRateRepository,
+  PrismaDailyInterestRepository
 } from './adapters/repositories';
 import {
   JwtAuthenticationService,
   NodemailerEmailService,
   WsServerService,
-  WsChatNotificationService
+  WsChatNotificationService,
+  WsSavingsNotificationService
 } from './adapters/services';
 import {
   RegisterUserUseCase,
@@ -45,7 +51,14 @@ import {
   TransferChatUseCase,
   SetTypingStatusUseCase,
   CloseChatUseCase,
-  GetPendingChatsCountUseCase
+  GetPendingChatsCountUseCase,
+  CreateSavingsBookUseCase,
+  GetUserSavingsBooksUseCase,
+  SetSavingsRateUseCase,
+  GetCurrentRatesUseCase,
+  ApplyDailyInterestUseCase,
+  DepositToSavingsBookUseCase,
+  WithdrawFromSavingsBookUseCase
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 
@@ -71,6 +84,9 @@ const messageRepository = new PrismaMessageRepository(prisma);
 const messageReadRepository = new PrismaMessageReadRepository(prisma);
 const chatViewRepository = new PrismaChatViewRepository(prisma);
 const userViewRepository = new PrismaUserViewRepository(prisma);
+const savingsBookRepository = new PrismaSavingsBookRepository(prisma);
+const savingsRateRepository = new PrismaSavingsRateRepository(prisma);
+const dailyInterestRepository = new PrismaDailyInterestRepository(prisma);
 
 const authenticationService = new JwtAuthenticationService(
   process.env.JWT_SECRET || 'fallback-secret',
@@ -83,6 +99,7 @@ const wsService = new WsServerService(httpServer, authenticationService, userVie
 
 // Notification Service (wraps WsService with abstraction)
 const notificationService = new WsChatNotificationService(wsService);
+const savingsNotificationService = new WsSavingsNotificationService(wsService, savingsBookRepository);
 
 // Auth use cases
 const registerUserUseCase = new RegisterUserUseCase(userRepository, emailConfirmationRepository, emailService);
@@ -107,11 +124,19 @@ const setTypingStatusUseCase = new SetTypingStatusUseCase(chatRepository);
 const closeChatUseCase = new CloseChatUseCase(chatRepository);
 const getPendingChatsCountUseCase = new GetPendingChatsCountUseCase(chatRepository, messageRepository);
 
+// Savings use cases
+const createSavingsBookUseCase = new CreateSavingsBookUseCase(savingsBookRepository, userRepository);
+const getUserSavingsBooksUseCase = new GetUserSavingsBooksUseCase(savingsBookRepository);
+const setSavingsRateUseCase = new SetSavingsRateUseCase(savingsRateRepository, savingsBookRepository, userRepository, savingsNotificationService);
+const getCurrentRatesUseCase = new GetCurrentRatesUseCase(savingsRateRepository);
+const applyDailyInterestUseCase = new ApplyDailyInterestUseCase(savingsBookRepository, savingsRateRepository, dailyInterestRepository, userRepository);
+const depositToSavingsBookUseCase = new DepositToSavingsBookUseCase(savingsBookRepository, accountRepository);
+const withdrawFromSavingsBookUseCase = new WithdrawFromSavingsBookUseCase(savingsBookRepository, accountRepository);
+
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
 const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase, transferAccountUseCase);
-const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase);
 const chatRestController = new ChatRestController(
   createChatUseCase,
   getMessagesBeforeUseCase,
@@ -137,8 +162,22 @@ const chatController = new ChatController(
   userViewRepository
 );
 
+// Savings Controllers
+const savingsBookController = new SavingsBookController(
+  createSavingsBookUseCase,
+  getUserSavingsBooksUseCase,
+  depositToSavingsBookUseCase,
+  withdrawFromSavingsBookUseCase,
+  getCurrentRatesUseCase
+);
+const savingsRateController = new SavingsRateController(
+  setSavingsRateUseCase,
+  applyDailyInterestUseCase,
+  getCurrentRatesUseCase
+);
+
 // Routes
-app.use(createAppRoutes(authController, emailConfirmationController, accountController, chatRestController));
+app.use(createAppRoutes(authController, emailConfirmationController, accountController, chatRestController, savingsBookController, savingsRateController));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
