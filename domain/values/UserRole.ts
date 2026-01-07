@@ -1,9 +1,9 @@
 import { InvalidUserRoleError } from '../errors';
 
 export enum UserRole {
-  CLIENT = 'CLIENT',
-  DIRECTOR = 'DIRECTOR',
-  ADVISOR = 'ADVISOR'
+  CLIENT = "CLIENT",
+  DIRECTOR = "DIRECTOR",
+  ADVISOR = "ADVISOR"
 }
 
 export class UserRoleValue {
@@ -15,11 +15,11 @@ export class UserRoleValue {
 
   public static create(role: string): UserRoleValue {
     const validRoles = Object.values(UserRole);
-    
+
     if (!validRoles.includes(role as UserRole)) {
       throw new InvalidUserRoleError(role, validRoles);
     }
-    
+
     return new UserRoleValue(role as UserRole);
   }
 

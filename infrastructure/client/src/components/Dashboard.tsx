@@ -9,6 +9,7 @@ import { authService } from "@/services/authService"
 import ClientDashboard from "./dashboards/ClientDashboard"
 import AdvisorDashboard from "./dashboards/AdvisorDashboard"
 import DirectorDashboard from "./dashboards/DirectorDashboard"
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 export default function Dashboard() {
   const router = useRouter()
@@ -79,11 +80,11 @@ export default function Dashboard() {
   }
 
   switch (role) {
-    case 'CLIENT':
+    case UserRole.CLIENT:
       return <ClientDashboard />
-    case 'ADVISOR':
+    case UserRole.ADVISOR:
       return <AdvisorDashboard />
-    case 'DIRECTOR':
+    case UserRole.DIRECTOR:
       return <DirectorDashboard />
     default:
       return (

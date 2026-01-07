@@ -27,9 +27,12 @@ import { accountService, Account } from "@/services/accountService"
 import { savingsBookService, SavingsBook, SavingsRate } from "@/services/savingsBookService"
 import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog, CreateSavingsBookDialog } from "@/components/dialogs"
 import { ChatContainer } from "@/components/chat/ChatContainer"
+import { useTranslations } from 'next-intl'
 
 export default function ClientDashboard() {
   const router = useRouter()
+  const t = useTranslations('dashboard.client')
+  const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState('overview')
   const [accounts, setAccounts] = useState<Account[]>([])
   const [savingsBooks, setSavingsBooks] = useState<SavingsBook[]>([])
@@ -162,12 +165,12 @@ export default function ClientDashboard() {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'accounts', label: 'Accounts', icon: CreditCard },
-    { id: 'transactions', label: 'Transactions', icon: ArrowUpDown },
-    { id: 'investments', label: 'Investments', icon: TrendingUp },
-    { id: 'savings', label: 'Savings', icon: PiggyBank },
-    { id: 'contact', label: 'Contact', icon: MessageSquare }
+    { id: 'overview', label: t('tabs.overview'), icon: BarChart3 },
+    { id: 'accounts', label: t('tabs.accounts'), icon: CreditCard },
+    { id: 'transactions', label: t('tabs.transactions'), icon: ArrowUpDown },
+    { id: 'investments', label: t('tabs.investments'), icon: TrendingUp },
+    { id: 'savings', label: t('tabs.accounts'), icon: PiggyBank },
+    { id: 'contact', label: t('tabs.chat'), icon: MessageSquare }
   ]
 
   return (
@@ -188,10 +191,10 @@ export default function ClientDashboard() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl font-prestige font-bold text-foreground/90 mb-2">
-            Welcome to your client space
+            {t('welcome')}
           </h1>
           <p className="text-muted-foreground/80 text-lg">
-            Manage your accounts, investments and savings securely
+            {t('title')}
           </p>
         </motion.div>
 
@@ -206,7 +209,7 @@ export default function ClientDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Balance</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.totalBalance')}</p>
                   <p className="text-2xl font-bold text-foreground">{totalBalance.toLocaleString('fr-FR')} €</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-primary" />
@@ -218,10 +221,10 @@ export default function ClientDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Savings Books</p>
-                  <p className="text-2xl font-bold text-foreground">{totalSavingsBalance.toLocaleString('fr-FR')} €</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.monthlySavings')}</p>
+                  <p className="text-2xl font-bold text-foreground">{mockData.monthlySavings.toLocaleString('fr-FR')} €</p>
                 </div>
-                <PiggyBank className="h-8 w-8 text-emerald-500" />
+                <PiggyBank className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
@@ -230,7 +233,7 @@ export default function ClientDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Portfolio</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.investmentValue')}</p>
                   <p className="text-2xl font-bold text-foreground">{mockData.investmentValue.toLocaleString('fr-FR')} €</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-blue-500" />
@@ -279,9 +282,9 @@ export default function ClientDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <CreditCard className="h-5 w-5" />
-                    <span>My Accounts</span>
+                    <span>{t('accounts.title')}</span>
                   </CardTitle>
-                  <CardDescription>Overview of your accounts</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {loading ? (
@@ -305,10 +308,10 @@ export default function ClientDashboard() {
                       </div>
 
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No accounts yet
+                        {t('accounts.noAccounts')}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Create your first account to get started
+                        {t('accounts.createFirst')}
                       </p>
 
                       <Button
@@ -316,7 +319,7 @@ export default function ClientDashboard() {
                         className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg"
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Create Account
+                        {t('accounts.createNew')}
                       </Button>
                     </motion.div>
                   ) : (
@@ -327,7 +330,7 @@ export default function ClientDashboard() {
                             <p className="font-medium text-foreground">{account.name}</p>
                             <p className="text-sm text-muted-foreground">{account.iban}</p>
                             {account.isSavings && (
-                              <p className="text-xs text-green-600">Savings Account</p>
+                              <p className="text-xs text-green-600">{t('accounts.savings')}</p>
                             )}
                           </div>
                           <div className="text-right">
@@ -340,7 +343,7 @@ export default function ClientDashboard() {
                         className="w-full mt-4 bg-primary/90 hover:bg-primary/80"
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        New Account
+                        {t('accounts.createNew')}
                       </Button>
                     </>
                   )}
@@ -352,9 +355,9 @@ export default function ClientDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Activity className="h-5 w-5" />
-                    <span>Recent Transactions</span>
+                    <span>{t('transactions.title')}</span>
                   </CardTitle>
-                  <CardDescription>Your latest transactions</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {mockData.recentTransactions.map((transaction) => (
@@ -373,7 +376,7 @@ export default function ClientDashboard() {
                     </div>
                   ))}
                   <Button variant="outline" className="w-full mt-4">
-                    View All Transactions
+                    {t('transactions.noTransactions')}
                   </Button>
                 </CardContent>
               </Card>
@@ -386,17 +389,17 @@ export default function ClientDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center space-x-2">
                     <CreditCard className="h-5 w-5" />
-                    <span>Account Management</span>
+                    <span>{t('accounts.title')}</span>
                   </span>
                   <Button
                     onClick={() => setIsCreateDialogOpen(true)}
                     className="bg-primary/90 hover:bg-primary/80"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    New Account
+                    {t('accounts.createNew')}
                   </Button>
                 </CardTitle>
-                <CardDescription>Create, modify or delete your accounts</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -421,10 +424,10 @@ export default function ClientDashboard() {
                       </div>
 
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No accounts found
+                        {t('accounts.noAccounts')}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Create your first account to start managing your finances
+                        {t('accounts.createFirst')}
                       </p>
 
                       <Button
@@ -432,7 +435,7 @@ export default function ClientDashboard() {
                         className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg"
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        New Account
+                        {t('accounts.createNew')}
                       </Button>
                     </motion.div>
                   ) : (
@@ -447,7 +450,7 @@ export default function ClientDashboard() {
                               <p className="font-semibold text-foreground">{account.name}</p>
                               <p className="text-sm text-muted-foreground">{account.iban}</p>
                               <p className="text-xs text-muted-foreground">
-                                {account.isSavings ? 'Savings Account' : 'Current Account'}
+                                {account.isSavings ? t('accounts.savings') : t('accounts.current')}
                               </p>
                             </div>
                           </div>
@@ -463,7 +466,7 @@ export default function ClientDashboard() {
                             className="text-primary hover:text-primary"
                           >
                             <ArrowRightLeft className="h-4 w-4 mr-1" />
-                            Transfer
+                            {t('accounts.balance')}
                           </Button>
                           <Button
                             variant="outline"
@@ -478,7 +481,7 @@ export default function ClientDashboard() {
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeleteAccount(account)}
                           >
-                            Delete
+                            {tCommon('delete')}
                           </Button>
                         </div>
                       </div>
@@ -495,14 +498,14 @@ export default function ClientDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center space-x-2">
                     <TrendingUp className="h-5 w-5" />
-                    <span>Stock Portfolio</span>
+                    <span>{t('investments.title')}</span>
                   </span>
                   <Button className="bg-primary/90 hover:bg-primary/80">
                     <Plus className="mr-2 h-4 w-4" />
-                    New Order
+                    {t('investments.title')}
                   </Button>
                 </CardTitle>
-                <CardDescription>Manage your stock investments</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -527,10 +530,10 @@ export default function ClientDashboard() {
                       </div>
                       <div className="flex space-x-2">
                         <Button variant="outline" size="sm">
-                          Sell
+                          {t('investments.noInvestments')}
                         </Button>
                         <Button variant="outline" size="sm">
-                          Buy
+                          {t('investments.noInvestments')}
                         </Button>
                       </div>
                     </div>
@@ -543,129 +546,82 @@ export default function ClientDashboard() {
           {activeTab === 'savings' && (
             <Card className="border-0 shadow-lg bg-background/90 backdrop-blur-xl">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center space-x-2">
-                    <PiggyBank className="h-5 w-5" />
-                    <span>Savings Books</span>
-                  </span>
-                  <Button
-                    onClick={() => setIsCreateSavingsBookDialogOpen(true)}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Open a Savings Book
-                  </Button>
+                <CardTitle className="flex items-center space-x-2">
+                  <PiggyBank className="h-5 w-5" />
+                  <span>{t('accounts.savings')}</span>
                 </CardTitle>
-                <CardDescription>Livret A and LDD - Earn interest on your savings</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Current Rates Banner */}
-                  {savingsRates.length > 0 && (
-                    <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-lg border border-emerald-500/20 mb-6">
-                      <p className="text-sm font-medium text-foreground mb-3">Current Interest Rates</p>
-                      <div className="flex space-x-4">
-                        {savingsRates.map((rate) => (
-                          <div key={rate.bookType} className="flex items-center space-x-2">
-                            <div className={`w-6 h-6 rounded-md flex items-center justify-center ${rate.bookType === 'LIVRET_A' ? 'bg-blue-500/20 text-blue-500' : 'bg-emerald-500/20 text-emerald-500'
-                              }`}>
-                              {rate.bookType === 'LIVRET_A' ? <BookOpen className="h-3 w-3" /> : <Leaf className="h-3 w-3" />}
-                            </div>
-                            <span className="text-sm text-muted-foreground">{rate.bookType === 'LIVRET_A' ? 'Livret A' : 'LDD'}:</span>
-                            <span className="font-semibold text-foreground">{rate.ratePercent}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {loadingSavings ? (
+                  {loading ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin" />
-                      <span className="ml-2">Loading savings books...</span>
+                      <span className="ml-2">Loading accounts...</span>
                     </div>
-                  ) : savingsBooks.length === 0 ? (
+                  ) : error ? (
+                    <div className="text-center py-8 text-red-500">
+                      <p>{error}</p>
+                    </div>
+                  ) : accounts.filter(account => account.isSavings).length === 0 ? (
                     <motion.div
                       className="text-center py-8"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6 }}
                     >
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-emerald-500/20 to-blue-500/10 rounded-full flex items-center justify-center mb-4">
-                        <PiggyBank className="h-8 w-8 text-emerald-500" />
+                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-full flex items-center justify-center mb-4">
+                        <PiggyBank className="h-8 w-8 text-blue-500" />
                       </div>
 
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No savings books yet
+                        {t('accounts.noAccounts')}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Open a Livret A or LDD to start growing your savings with tax-free interest
+                        {t('accounts.createFirst')}
                       </p>
 
                       <Button
-                        onClick={() => setIsCreateSavingsBookDialogOpen(true)}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg"
+                        onClick={() => setIsSavingsDialogOpen(true)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
                       >
                         <PiggyBank className="mr-2 h-4 w-4" />
-                        Open Savings Book
+                        {t('accounts.createSavings')}
                       </Button>
                     </motion.div>
                   ) : (
-                    savingsBooks.map((book) => {
-                      const rate = savingsRates.find(r => r.bookType === book.type)
-                      const isLivretA = book.type === 'LIVRET_A'
-
-                      return (
-                        <motion.div
-                          key={book.id}
-                          className="p-4 bg-background/60 rounded-lg border border-border/30"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isLivretA
-                                ? 'bg-blue-500/20 text-blue-500'
-                                : 'bg-emerald-500/20 text-emerald-500'
-                                }`}>
-                                {isLivretA ? <BookOpen className="h-5 w-5" /> : <Leaf className="h-5 w-5" />}
-                              </div>
-                              <div>
-                                <p className="font-semibold text-foreground">{book.name}</p>
-                                <p className="text-sm text-muted-foreground">{book.iban}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-foreground">{book.balance.toLocaleString('fr-FR')} €</p>
-                              <p className={`text-sm ${isLivretA ? 'text-blue-600' : 'text-emerald-600'}`}>
-                                {book.typeDisplayName || (isLivretA ? 'Livret A' : 'LDD')}
-                              </p>
-                            </div>
+                    accounts.filter(account => account.isSavings).map((account) => (
+                      <div key={account.id} className="p-4 bg-background/60 rounded-lg border border-border/30">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <p className="font-semibold text-foreground">{account.name}</p>
+                            <p className="text-sm text-muted-foreground">{account.iban}</p>
                           </div>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center p-3 bg-background/40 rounded-lg">
-                              <p className="text-sm text-muted-foreground">Type</p>
-                              <p className={`font-semibold ${isLivretA ? 'text-blue-600' : 'text-emerald-600'}`}>
-                                {isLivretA ? 'Livret A' : 'LDD'}
-                              </p>
-                            </div>
-                            <div className="text-center p-3 bg-background/40 rounded-lg">
-                              <p className="text-sm text-muted-foreground">Interest Rate</p>
-                              <p className="font-semibold text-green-600">
-                                {rate?.ratePercent || 'N/A'}
-                              </p>
-                            </div>
-                            <div className="text-center p-3 bg-background/40 rounded-lg">
-                              <p className="text-sm text-muted-foreground">Created</p>
-                              <p className="font-semibold text-muted-foreground">
-                                {new Date(book.createdAt).toLocaleDateString('fr-FR')}
-                              </p>
-                            </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-foreground">{account.balance.toLocaleString('fr-FR')} €</p>
+                            <p className="text-sm text-green-600">{t('accounts.savings')}</p>
                           </div>
-                        </motion.div>
-                      )
-                    })
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center p-3 bg-background/40 rounded-lg">
+                            <p className="text-sm text-muted-foreground">Account Type</p>
+                            <p className="font-semibold text-green-600">Savings</p>
+                          </div>
+                          <div className="text-center p-3 bg-background/40 rounded-lg">
+                            <p className="text-sm text-muted-foreground">Created</p>
+                            <p className="font-semibold text-muted-foreground">{new Date(account.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
                   )}
+                  <Button
+                    onClick={() => setIsSavingsDialogOpen(true)}
+                    className="w-full bg-primary/90 hover:bg-primary/80"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('accounts.createSavings')}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -676,9 +632,9 @@ export default function ClientDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <MessageSquare className="h-5 w-5" />
-                  <span>Contact Support</span>
+                  <span>{t('tabs.chat')}</span>
                 </CardTitle>
-                <CardDescription>Chat with our advisors in real-time</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <ChatContainer />

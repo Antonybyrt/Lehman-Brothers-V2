@@ -3,12 +3,14 @@ import { ChatRepository, UserRepository, ChatViewRepository } from '../../reposi
 import { ChatNotificationService } from '../../services';
 import { UserNotFoundError, InvalidUserRoleError, ValidationError } from '@lehman-brothers/domain';
 import { exhaustive } from 'exhaustive';
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 export interface CreateChatRequest {
   readonly clientId: string;
   readonly subject: string;
   readonly creatorRole?: string; // Role of the user creating the chat (CLIENT or ADVISOR)
   readonly creatorId?: string; // ID of the user creating the chat (to auto-assign advisor)
+  readonly priority?: string;
 }
 
 export interface CreateChatResponse {
@@ -47,11 +49,11 @@ export class CreateChatUseCase {
       }
 
       const clientRole = client.getRole().getValue();
-      if (clientRole !== 'CLIENT') {
-        throw new InvalidUserRoleError(clientRole, ['CLIENT']);
+      if (clientRole !== UserRole.CLIENT) {
+        throw new InvalidUserRoleError(clientRole, [UserRole.CLIENT]);
       }
 
-      const advisorId = (request.creatorRole === 'ADVISOR' || request.creatorRole === 'DIRECTOR') && request.creatorId
+      const advisorId = (request.creatorRole === UserRole.ADVISOR || request.creatorRole === UserRole.DIRECTOR) && request.creatorId
         ? request.creatorId
         : null;
 
@@ -60,6 +62,7 @@ export class CreateChatUseCase {
         subject: request.subject,
         clientId: request.clientId,
         advisorId: advisorId,
+        priority: request.priority || 'LOW'
       });
 
       if (!chatResult.isSuccess()) {
@@ -81,12 +84,13 @@ export class CreateChatUseCase {
           advisorId: chatView.advisorId || undefined,
           advisorName: chatView.advisorName || undefined,
           status: chatView.status,
+          priority: chat.priority,
           createdAt: chatView.createdAt.toISOString(),
         };
 
-        await this.notificationService.notifyRole('ADVISOR', 'chat:created', chatPayload);
+        await this.notificationService.notifyRole(UserRole.ADVISOR, 'chat:created', chatPayload);
 
-        const shouldNotifyClient = request.creatorRole === 'ADVISOR' || request.creatorRole === 'DIRECTOR';
+        const shouldNotifyClient = request.creatorRole === UserRole.ADVISOR || request.creatorRole === UserRole.DIRECTOR;
         if (shouldNotifyClient) {
           await this.notificationService.notifyUser(chat.clientId, 'chat:created', chatPayload);
         }

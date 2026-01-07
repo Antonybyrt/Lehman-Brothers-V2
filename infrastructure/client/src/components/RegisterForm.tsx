@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react"
 import { authService, RegisterRequest } from "@/services/authService"
 import toast from "react-hot-toast"
+import { useTranslations } from 'next-intl'
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -16,6 +17,7 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
+  const t = useTranslations('auth.register')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -106,10 +108,10 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
             </motion.div>
             
             <CardTitle className="text-2xl font-prestige font-bold text-foreground/90">
-              Create Account
+              {t('title')}
             </CardTitle>
             <CardDescription className="text-muted-foreground/80">
-              Join Lehman Brothers Heritage - Create your client account
+              {t('subtitle')}
             </CardDescription>
           </CardHeader>
 
@@ -138,14 +140,14 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-sm font-medium text-foreground/80">
-                    First Name
+                    {t('firstName')}
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                     <Input
                       id="firstName"
                       type="text"
-                      placeholder="John"
+                      placeholder={t('firstNamePlaceholder')}
                       value={registerData.firstName}
                       onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
                       className="pl-10 bg-background/60 border-border/50"
@@ -156,14 +158,14 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="lastName" className="text-sm font-medium text-foreground/80">
-                    Last Name
+                    {t('lastName')}
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                     <Input
                       id="lastName"
                       type="text"
-                      placeholder="Doe"
+                      placeholder={t('lastNamePlaceholder')}
                       value={registerData.lastName}
                       onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
                       className="pl-10 bg-background/60 border-border/50"
@@ -175,14 +177,14 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-foreground/80">
-                  Email Address
+                  {t('email')}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="john.doe@example.com"
+                    placeholder={t('emailPlaceholder')}
                     value={registerData.email}
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                     className="pl-10 bg-background/60 border-border/50"
@@ -193,14 +195,14 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-foreground/80">
-                  Password
+                  {t('password')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Create a strong password"
+                    placeholder={t('passwordPlaceholder')}
                     value={registerData.password}
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                     className="pl-10 pr-10 bg-background/60 border-border/50"
@@ -221,7 +223,7 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
                 className="w-full bg-primary/90 hover:bg-primary/80 shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
                 disabled={loading}
               >
-                {loading ? 'Creating account...' : 'Create Account'}
+                {t('submit')}
               </Button>
             </form>
 
@@ -231,11 +233,11 @@ export function RegisterForm({ onSuccess, onBack }: RegisterFormProps) {
                 className="flex items-center justify-center gap-2 text-sm text-muted-foreground/80 hover:text-foreground transition-colors font-medium mx-auto"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Login
+                {t('hasAccount')} {t('signIn')}
               </button>
               
               <div className="text-xs text-muted-foreground/60">
-                By creating an account, you agree to our Terms of Service and Privacy Policy
+                {t('subtitle')}
               </div>
             </div>
           </CardContent>

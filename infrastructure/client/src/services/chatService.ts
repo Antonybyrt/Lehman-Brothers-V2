@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Chat, ChatMessage } from '@/types/chat';
+import { handleHttpError } from '@/utils/errorHandler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -8,12 +9,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 export interface CreateChatRequest {
   subject: string;
   clientId?: string; // Optional: used by advisors to create chats for clients
+  priority?: string;
 }
 
 export interface CreateChatResponse {
   success: boolean;
   chatId?: string;
   subject?: string;
+  priority?: string;
   error?: string;
 }
 
@@ -36,9 +39,9 @@ export interface GetChatMessagesResponse {
   error?: string;
 }
 
-export interface GetPendingChatsCountResponse {
+export interface GetPendingChatsResponse {
   success: boolean;
-  count?: number;
+  chats?: Chat[];
   error?: string;
 }
 
@@ -64,15 +67,22 @@ class ChatService {
       const response = await this.api.post<CreateChatResponse>('/chats', data);
       return response.data;
     } catch (error) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response) {
-        return {
-          success: false,
-          error: error.response.data.error || 'Failed to create chat',
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error || 'Failed to create chat',
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
+        error: httpError.error || 'Network error occurred',
       };
     }
   }
@@ -83,15 +93,22 @@ class ChatService {
       const response = await this.api.get<GetChatsResponse>('/chats');
       return response.data;
     } catch (error) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response) {
-        return {
-          success: false,
-          error: error.response.data.error || 'Failed to load chats',
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error || 'Failed to load chats',
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
+        error: httpError.error || 'Network error occurred',
       };
     }
   }
@@ -102,15 +119,22 @@ class ChatService {
       const response = await this.api.get<GetChatByIdResponse>(`/chats/${chatId}`);
       return response.data;
     } catch (error) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response) {
-        return {
-          success: false,
-          error: error.response.data.error || 'Failed to load chat',
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error || 'Failed to load chat',
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
+        error: httpError.error || 'Network error occurred',
       };
     }
   }
@@ -129,15 +153,22 @@ class ChatService {
       const response = await this.api.get<GetChatMessagesResponse>(url);
       return response.data;
     } catch (error) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response) {
-        return {
-          success: false,
-          error: error.response.data.error || 'Failed to load messages',
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error || 'Failed to load messages',
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
+        error: httpError.error || 'Network error occurred',
       };
     }
   }
@@ -149,15 +180,22 @@ class ChatService {
       );
       return response.data;
     } catch (error) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response) {
-        return {
-          success: false,
-          error: error.response.data.error || 'Failed to close chat',
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error || 'Failed to close chat',
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
+        error: httpError.error || 'Network error occurred',
       };
     }
   }
@@ -170,34 +208,48 @@ class ChatService {
       );
       return response.data;
     } catch (error) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response) {
-        return {
-          success: false,
-          error: error.response.data.error || 'Failed to transfer chat',
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error || 'Failed to transfer chat',
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
+        error: httpError.error || 'Network error occurred',
       };
     }
   }
 
-  // Get count of chats pending advisor response
-  async getPendingChatsCount(): Promise<GetPendingChatsCountResponse> {
+  // Get chats pending advisor response
+  async getPendingChats(): Promise<GetPendingChatsResponse> {
     try {
-      const response = await this.api.get<GetPendingChatsCountResponse>('/chats/pending-count');
+      const response = await this.api.get<GetPendingChatsResponse>('/chats/pending');
       return response.data;
     } catch (error) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (axios.isAxiosError(error) && error.response) {
-        return {
-          success: false,
-          error: error.response.data.error || 'Failed to get pending chats count',
-        };
+        const status = error.response.status;
+        if (status !== 404 && status !== 500) {
+          return {
+            success: false,
+            error: error.response.data.error || 'Failed to get pending chats',
+          };
+        }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
+        error: httpError.error || 'Network error occurred',
       };
     }
   }

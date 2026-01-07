@@ -192,6 +192,7 @@ model Chat {
   advisor_id           String?
   transferred_from_id  String?
   status               ChatStatus @default(OPEN)
+  priority             ChatPriority @default(LOW)
   open                 Boolean  @default(true)
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
@@ -239,8 +240,13 @@ model MessageRead {
 
 enum ChatStatus {
   OPEN
-  TRANSFERRED
   CLOSED
+}
+
+enum ChatPriority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 

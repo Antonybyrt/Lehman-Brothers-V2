@@ -21,8 +21,11 @@ import {
   MessageSquare
 } from "lucide-react"
 import { ChatContainer } from "@/components/chat/ChatContainer"
+import { useTranslations } from 'next-intl'
 
 export default function DirectorDashboard() {
+  const t = useTranslations('dashboard.director')
+  const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState('overview')
 
   // Mock data for director dashboard
@@ -55,12 +58,12 @@ export default function DirectorDashboard() {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'accounts', label: 'Account Management', icon: Users },
-    { id: 'chats', label: 'Chats', icon: MessageSquare },
-    { id: 'stocks', label: 'Stocks', icon: TrendingUp },
-    { id: 'rates', label: 'Savings Rates', icon: DollarSign },
-    { id: 'notifications', label: 'Notifications', icon: Activity }
+    { id: 'overview', label: t('tabs.overview'), icon: BarChart3 },
+    { id: 'accounts', label: t('tabs.accounts'), icon: Users },
+    { id: 'chats', label: t('tabs.management'), icon: MessageSquare },
+    { id: 'stocks', label: t('management.stocks'), icon: TrendingUp },
+    { id: 'rates', label: t('management.savingsRate'), icon: DollarSign },
+    { id: 'notifications', label: t('tabs.notifications'), icon: Activity }
   ]
 
   return (
@@ -81,10 +84,10 @@ export default function DirectorDashboard() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl font-prestige font-bold text-foreground/90 mb-2">
-            Director Dashboard
+            {t('title')}
           </h1>
           <p className="text-muted-foreground/80 text-lg">
-            Bank supervision and global management
+            {t('welcome')}
           </p>
         </motion.div>
 
@@ -99,7 +102,7 @@ export default function DirectorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Clients</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.activeClients')}</p>
                   <p className="text-2xl font-bold text-foreground">{mockData.bankStats.totalClients.toLocaleString('fr-FR')}</p>
                 </div>
                 <Users className="h-8 w-8 text-primary" />
@@ -111,7 +114,7 @@ export default function DirectorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Accounts</p>
+                  <p className="text-sm text-muted-foreground">{t('tabs.accounts')}</p>
                   <p className="text-2xl font-bold text-foreground">{mockData.bankStats.totalAccounts.toLocaleString('fr-FR')}</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-blue-500" />
@@ -123,7 +126,7 @@ export default function DirectorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Loans</p>
+                  <p className="text-sm text-muted-foreground">{t('management.stocks')}</p>
                   <p className="text-2xl font-bold text-foreground">{mockData.bankStats.totalLoans}</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500" />
@@ -135,7 +138,7 @@ export default function DirectorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Deposits</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.totalAssets')}</p>
                   <p className="text-2xl font-bold text-foreground">{(mockData.bankStats.totalDeposits / 1000000).toFixed(1)}M €</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-purple-500" />
@@ -147,7 +150,7 @@ export default function DirectorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Revenus Mensuels</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.totalRevenue')}</p>
                   <p className="text-2xl font-bold text-foreground">{(mockData.bankStats.monthlyRevenue / 1000).toFixed(0)}K €</p>
                 </div>
                 <Activity className="h-8 w-8 text-orange-500" />
@@ -159,7 +162,7 @@ export default function DirectorDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Savings Rate</p>
+                  <p className="text-sm text-muted-foreground">{t('management.savingsRate')}</p>
                   <p className="text-2xl font-bold text-foreground">{mockData.bankStats.savingsRate}%</p>
                 </div>
                 <Settings className="h-8 w-8 text-cyan-500" />
@@ -208,9 +211,9 @@ export default function DirectorDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Activity className="h-5 w-5" />
-                    <span>Recent Notifications</span>
+                    <span>{t('notifications.title')}</span>
                   </CardTitle>
-                  <CardDescription>Latest actions and modifications</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {mockData.notifications.map((notification) => (
@@ -240,30 +243,30 @@ export default function DirectorDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Users className="h-5 w-5" />
-                    <span>Account Status</span>
+                    <span>{t('accounts.title')}</span>
                   </CardTitle>
-                  <CardDescription>Account distribution by status</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex items-center space-x-3">
                         <CheckCircle className="h-5 w-5 text-green-500" />
-                        <span className="font-medium text-foreground">Active Accounts</span>
+                        <span className="font-medium text-foreground">{t('accounts.active')}</span>
                       </div>
                       <span className="font-bold text-green-600">3,891</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex items-center space-x-3">
                         <AlertTriangle className="h-5 w-5 text-red-500" />
-                        <span className="font-medium text-foreground">Suspended Accounts</span>
+                        <span className="font-medium text-foreground">{t('accounts.suspended')}</span>
                       </div>
                       <span className="font-bold text-red-600">12</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex items-center space-x-3">
                         <Settings className="h-5 w-5 text-yellow-500" />
-                        <span className="font-medium text-foreground">Pending</span>
+                        <span className="font-medium text-foreground">{t('notifications.noNotifications')}</span>
                       </div>
                       <span className="font-bold text-yellow-600">8</span>
                     </div>
@@ -279,14 +282,14 @@ export default function DirectorDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center space-x-2">
                     <Users className="h-5 w-5" />
-                    <span>Client Account Management</span>
+                    <span>{t('accounts.title')}</span>
                   </span>
                   <Button className="bg-primary/90 hover:bg-primary/80">
                     <Plus className="mr-2 h-4 w-4" />
-                    New Account
+                    {t('accounts.noAccounts')}
                   </Button>
                 </CardTitle>
-                <CardDescription>Create, modify, delete or suspend client accounts</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

@@ -25,10 +25,10 @@ export function usePendingChatsCount() {
         }
 
         chatService.setAuthToken(token)
-        const response = await chatService.getPendingChatsCount()
+        const response = await chatService.getPendingChats()
 
-        if (response.success && response.count !== undefined) {
-          setCount(response.count)
+        if (response.success && response.chats) {
+          setCount(response.chats.length)
         }
       } catch (error) {
         console.error('Error fetching pending chats count:', error)
@@ -44,11 +44,11 @@ export function usePendingChatsCount() {
 
     // Listen to WebSocket events for real-time updates
     if (token) {
-      const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'}?token=${token}`
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'
       let ws: WebSocket | null = null
 
       try {
-        ws = new WebSocket(wsUrl)
+        ws = new WebSocket(wsUrl, `Bearer.${token}`)
 
         ws.onmessage = (event) => {
           try {

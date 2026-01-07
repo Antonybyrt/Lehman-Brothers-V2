@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { handleHttpError } from '@/utils/errorHandler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -100,16 +101,23 @@ class AccountService {
       const response = await this.api.post('/accounts', accountData);
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: CreateAccountResponse } };
+        const axiosError = error as { response?: { data?: CreateAccountResponse; status?: number } };
         if (axiosError.response?.data) {
-          return axiosError.response.data;
+          const status = axiosError.response.status;
+          if (status !== 404 && status !== 500) {
+            return axiosError.response.data;
+          }
         }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
-        type: 'network'
+        error: httpError.error,
+        type: httpError.errorType || 'network'
       };
     }
   }
@@ -120,16 +128,23 @@ class AccountService {
       const response = await this.api.get('/accounts');
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: GetAccountsResponse } };
+        const axiosError = error as { response?: { data?: GetAccountsResponse; status?: number } };
         if (axiosError.response?.data) {
-          return axiosError.response.data;
+          const status = axiosError.response.status;
+          if (status !== 404 && status !== 500) {
+            return axiosError.response.data;
+          }
         }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
-        type: 'network'
+        error: httpError.error,
+        type: httpError.errorType || 'network'
       };
     }
   }
@@ -140,16 +155,23 @@ class AccountService {
       const response = await this.api.get(`/accounts/${accountId}`);
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: GetAccountByIdResponse } };
+        const axiosError = error as { response?: { data?: GetAccountByIdResponse; status?: number } };
         if (axiosError.response?.data) {
-          return axiosError.response.data;
+          const status = axiosError.response.status;
+          if (status !== 404 && status !== 500) {
+            return axiosError.response.data;
+          }
         }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
-        type: 'network'
+        error: httpError.error,
+        type: httpError.errorType || 'network'
       };
     }
   }
@@ -160,16 +182,23 @@ class AccountService {
       const response = await this.api.patch(`/accounts/${accountId}`, updateData);
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: UpdateAccountResponse } };
+        const axiosError = error as { response?: { data?: UpdateAccountResponse; status?: number } };
         if (axiosError.response?.data) {
-          return axiosError.response.data;
+          const status = axiosError.response.status;
+          if (status !== 404 && status !== 500) {
+            return axiosError.response.data;
+          }
         }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
-        type: 'network'
+        error: httpError.error,
+        type: httpError.errorType || 'network'
       };
     }
   }
@@ -182,16 +211,23 @@ class AccountService {
       });
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: DeleteAccountResponse } };
+        const axiosError = error as { response?: { data?: DeleteAccountResponse; status?: number } };
         if (axiosError.response?.data) {
-          return axiosError.response.data;
+          const status = axiosError.response.status;
+          if (status !== 404 && status !== 500) {
+            return axiosError.response.data;
+          }
         }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
-        type: 'network'
+        error: httpError.error,
+        type: httpError.errorType || 'network'
       };
     }
   }
@@ -202,16 +238,23 @@ class AccountService {
       const response = await this.api.post(`/accounts/${sourceAccountId}/transfer`, transferData);
       return response.data;
     } catch (error: unknown) {
+      // Handle 404/500 errors with redirect
+      const httpError = handleHttpError(error, true);
+      
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: TransferAccountResponse } };
+        const axiosError = error as { response?: { data?: TransferAccountResponse; status?: number } };
         if (axiosError.response?.data) {
-          return axiosError.response.data;
+          const status = axiosError.response.status;
+          if (status !== 404 && status !== 500) {
+            return axiosError.response.data;
+          }
         }
       }
+      
       return {
         success: false,
-        error: 'Network error occurred',
-        type: 'network'
+        error: httpError.error,
+        type: httpError.errorType || 'network'
       };
     }
   }

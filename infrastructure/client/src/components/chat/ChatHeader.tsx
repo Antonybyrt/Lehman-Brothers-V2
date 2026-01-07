@@ -8,6 +8,7 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRightLeft } from 'lucide-react'
 import { Chat, ConnectionStatus } from '@/types/chat'
+import { UserRole } from '@lehman-brothers/domain/values/UserRole';
 
 interface ChatHeaderProps {
   chat: Chat | undefined
@@ -79,7 +80,7 @@ export function ChatHeader({
             }`}>
             {chat.status}
           </span>
-          {userRole === 'ADVISOR' && chat.status === 'OPEN' && chat.advisorId === userId && (
+          {userRole === UserRole.ADVISOR && chat.status === 'OPEN' && chat.advisorId === userId && (
             <>
               <Button
                 onClick={onTransferClick}
