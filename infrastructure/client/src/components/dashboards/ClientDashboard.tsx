@@ -26,9 +26,16 @@ import {
 import { accountService, Account } from "@/services/accountService"
 import { savingsBookService, SavingsBook, SavingsRate } from "@/services/savingsBookService"
 import { transactionService, Transaction } from "@/services/transactionService"
-import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog, CreateSavingsBookDialog } from "@/components/dialogs"
+import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog, BuyStockDialog, SellStockDialog, CreateSavingsBookDialog } from "@/components/dialogs"
+import { MarketView } from './MarketView';
 import { ChatContainer } from "@/components/chat/ChatContainer"
 import { useTranslations } from 'next-intl'
+import { useInvestment } from "@/hooks/useInvestment"
+import { Stock } from "@/services/investmentService"
+
+interface ClientDashboardProps {
+  user: any;
+}
 
 export default function ClientDashboard() {
   const router = useRouter()
@@ -39,6 +46,30 @@ export default function ClientDashboard() {
   const [savingsBooks, setSavingsBooks] = useState<SavingsBook[]>([])
   const [savingsRates, setSavingsRates] = useState<SavingsRate[]>([])
   const [loading, setLoading] = useState(true)
+
+  const { stocks, portfolio, orders, fetchStocks, fetchPortfolio, fetchUserOrders } = useInvestment();
+
+  const refreshData = async () => {
+    // Refresh all data: Accounts, Portfolio, Orders
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      accountService.setAuthToken(token)
+      const response = await accountService.getUserAccounts()
+      if (response.success && response.accounts) {
+        setAccounts(response.accounts)
+      }
+    }
+    await fetchPortfolio();
+    await fetchUserOrders();
+  };
+
+  useEffect(() => {
+    if (activeTab === 'investments') {
+      fetchStocks();
+      fetchPortfolio();
+      fetchUserOrders();
+    }
+  }, [activeTab, fetchStocks, fetchPortfolio, fetchUserOrders]);
   const [loadingSavings, setLoadingSavings] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -47,7 +78,12 @@ export default function ClientDashboard() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false)
+  const [isBuyStockOpen, setIsBuyStockOpen] = useState(false)
+  const [isSellStockOpen, setIsSellStockOpen] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
+  const [selectedStockToSell, setSelectedStockToSell] = useState<Stock | null>(null)
+  const [maxSellQuantity, setMaxSellQuantity] = useState<number>(0)
+  const [investmentTab, setInvestmentTab] = useState<'portfolio' | 'orders'>('portfolio');
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loadingTransactions, setLoadingTransactions] = useState(true)
 
@@ -710,52 +746,112 @@ export default function ClientDashboard() {
 
           {activeTab === 'investments' && (
             <Card className="border-0 shadow-lg bg-background/90 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center space-x-2">
-                    <TrendingUp className="h-5 w-5" />
-                    <span>{t('investments.title')}</span>
-                  </span>
-                  <Button className="bg-primary/90 hover:bg-primary/80">
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t('investments.title')}
-                  </Button>
-                </CardTitle>
-                <CardDescription>{t('title')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockData.investments.map((investment) => (
-                    <div key={investment.id} className="flex items-center justify-between p-4 bg-background/60 rounded-lg border border-border/30">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-lg flex items-center justify-center">
-                            <TrendingUp className="h-5 w-5 text-blue-500" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-foreground">{investment.symbol} - {investment.name}</p>
-                            <p className="text-sm text-muted-foreground">{investment.shares} shares at {investment.currentPrice} €</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right mr-4">
-                        <p className="text-xl font-bold text-foreground">{investment.totalValue.toLocaleString('fr-FR')} €</p>
-                        <p className={`text-sm ${investment.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                          {investment.change}
-                        </p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          {t('investments.noInvestments')}
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          {t('investments.noInvestments')}
-                        </Button>
-                      </div>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold text-white">{t('investments.title')}</h2>
+                  <div className="flex gap-4">
+                    <div className="flex bg-white/5 rounded-lg p-1">
+                      <button
+                        onClick={() => setInvestmentTab('portfolio')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${investmentTab === 'portfolio'
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-white/50 hover:text-white'
+                          }`}
+                      >
+                        {t('investments.portfolio')}
+                      </button>
+                      <button
+                        onClick={() => setInvestmentTab('orders')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${investmentTab === 'orders'
+                          ? 'bg-white/10 text-white shadow-sm'
+                          : 'text-white/50 hover:text-white'
+                          }`}
+                      >
+                        {t('investments.market')}
+                      </button>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </CardContent>
+
+                {investmentTab === 'portfolio' ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="p-4 text-xs font-medium text-white/50 uppercase">{t('investments.symbol')}</th>
+                          <th className="p-4 text-xs font-medium text-white/50 uppercase">{t('investments.name')}</th>
+                          <th className="p-4 text-xs font-medium text-white/50 uppercase">{t('investments.shares')}</th>
+                          <th className="p-4 text-xs font-medium text-white/50 uppercase">{t('investments.currentPrice')}</th>
+                          <th className="p-4 text-xs font-medium text-white/50 uppercase">{t('investments.totalValue')}</th>
+                          <th className="p-4 text-xs font-medium text-white/50 uppercase">{tCommon('actions')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {!portfolio || portfolio.holdings.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-white/50">
+                              {t('investments.noInvestments')}
+                            </td>
+                          </tr>
+                        ) : (
+                          portfolio.holdings.map((holding) => {
+                            const stock = stocks.find(s => s.id === holding.stockId);
+                            if (!stock) return null;
+                            const totalValue = holding.quantity * stock.currentPrice;
+
+                            return (
+                              <tr key={holding.stockId} className="hover:bg-white/5 transition-colors">
+                                <td className="p-4 text-white font-medium">{stock.symbol}</td>
+                                <td className="p-4 text-white">{stock.name}</td>
+                                <td className="p-4 text-white">{holding.quantity}</td>
+                                <td className="p-4 text-white">
+                                  {(stock.currentPrice).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                                </td>
+                                <td className="p-4 text-white font-bold">
+                                  {(totalValue).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                                </td>
+                                <td className="p-4">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedStockToSell(stock);
+                                      setMaxSellQuantity(holding.quantity);
+                                      setIsSellStockOpen(true);
+                                    }}
+                                    className="px-3 py-1 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm"
+                                  >
+                                    {t('investments.sell')}
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <MarketView
+                    stocks={stocks}
+                    orders={orders}
+                    onRefresh={refreshData}
+                    accounts={accounts}
+                    portfolio={portfolio}
+                  />
+                )}
+              </div>
+              <BuyStockDialog
+                open={isBuyStockOpen}
+                onOpenChange={setIsBuyStockOpen}
+                accounts={accounts}
+                onSuccess={refreshData}
+              />
+              <SellStockDialog
+                open={isSellStockOpen}
+                onOpenChange={setIsSellStockOpen}
+                stock={selectedStockToSell}
+                maxQuantity={maxSellQuantity}
+                onSuccess={refreshData}
+              />
             </Card>
           )}
 
@@ -867,38 +963,46 @@ export default function ClientDashboard() {
             </Card>
           )}
         </motion.div>
+
+        {/* Modals */}
+        <CreateAccountDialog
+          isOpen={isCreateDialogOpen}
+          onClose={() => setIsCreateDialogOpen(false)}
+          isSavings={false}
+          onAccountCreated={handleAccountCreated}
+        />
+
+        <CreateAccountDialog
+          isOpen={isSavingsDialogOpen}
+          onClose={() => setIsSavingsDialogOpen(false)}
+          isSavings={true}
+          onAccountCreated={handleAccountCreated}
+        />
+
+        <EditAccountDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          accountId={selectedAccount?.id || ''}
+          currentName={selectedAccount?.name || ''}
+          onAccountUpdated={handleAccountCreated}
+        />
+
+        <DeleteAccountDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          accountToDelete={selectedAccount}
+          userAccounts={accounts}
+          onAccountDeleted={handleAccountCreated}
+        />
+
+        <TransferAccountDialog
+          isOpen={isTransferDialogOpen}
+          onClose={() => setIsTransferDialogOpen(false)}
+          sourceAccount={selectedAccount}
+          userAccounts={accounts}
+          onTransferComplete={handleAccountCreated}
+        />
       </div>
-
-      {/* Modals */}
-      <CreateAccountDialog
-        isOpen={isCreateDialogOpen}
-        onClose={() => setIsCreateDialogOpen(false)}
-        onAccountCreated={handleAccountCreated}
-      />
-
-      <EditAccountDialog
-        isOpen={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        accountId={selectedAccount?.id || ''}
-        currentName={selectedAccount?.name || ''}
-        onAccountUpdated={handleAccountCreated}
-      />
-
-      <DeleteAccountDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        accountToDelete={selectedAccount}
-        userAccounts={accounts}
-        onAccountDeleted={handleAccountCreated}
-      />
-
-      <TransferAccountDialog
-        isOpen={isTransferDialogOpen}
-        onClose={() => setIsTransferDialogOpen(false)}
-        sourceAccount={selectedAccount}
-        userAccounts={accounts}
-        onTransferComplete={handleAccountCreated}
-      />
 
       <CreateSavingsBookDialog
         isOpen={isCreateSavingsBookDialogOpen}

@@ -17,7 +17,9 @@
     "view": "Voir",
     "viewAll": "Voir tout",
     "refresh": "Actualiser",
-    "noData": "Aucune donnée disponible"
+    "noData": "Aucune donnée disponible",
+    "processing": "Traitement en cours...",
+    "all": "Tout"
   },
   "nav": {
     "home": "Accueil",
@@ -106,18 +108,44 @@
         "to": "Vers",
         "amount": "Montant",
         "date": "Date",
-        "noTransactions": "Aucune transaction récente",
-        "newTransfer": "Nouveau virement"
+        "noTransactions": "Aucune transaction récente"
       },
       "investments": {
         "title": "Portefeuille d'investissements",
+        "market": "Marché",
         "symbol": "Symbole",
         "name": "Nom",
         "shares": "Actions",
         "currentPrice": "Prix actuel",
         "totalValue": "Valeur totale",
         "change": "Variation",
-        "noInvestments": "Aucun investissement"
+        "noInvestments": "Aucun investissement",
+        "buyStock": "Acheter une action",
+        "buyStockDescription": "Sélectionnez un compte et l'action que vous souhaitez acheter.",
+        "selectAccount": "Sélectionner un compte",
+        "availableStocks": "Actions disponibles",
+        "quantity": "Quantité",
+        "totalCost": "Coût total",
+        "confirmBuy": "Confirmer l'achat",
+        "insufficientFunds": "Fonds insuffisants",
+        "sellStock": "Vendre une action",
+        "sellStockDescription": "Entrez la quantité d'actions que vous souhaitez vendre.",
+        "availableShares": "Actions disponibles",
+        "estimatedValue": "Valeur estimée",
+        "insufficientShares": "Actions insuffisantes",
+        "confirmSell": "Confirmer la vente",
+        "portfolio": "Portefeuille",
+        "orders": "Ordres",
+        "myOrders": "Mes ordres",
+        "noOrders": "Aucun ordre en attente",
+        "marketOrders": "Ordres du marché",
+        "noMarketOrders": "Aucun ordre de marché disponible",
+        "selectOrder": "Sélectionnez un ordre pour voir les détails",
+        "type": "Type",
+        "price": "Prix",
+        "date": "Date",
+        "buy": "Achat",
+        "sell": "Vente"
       }
     },
     "advisor": {
@@ -193,14 +221,40 @@
       "management": {
         "title": "Gestion du système",
         "savingsRate": "Taux d'épargne",
-        "addStock": "Ajouter action",
         "banAccount": "Bannir compte",
         "users": "Utilisateurs",
         "stocks": "Actions",
-        "settings": "Paramètres"
+        "settings": "Paramètres",
+        "addStock": "Ajouter une action",
+        "createStockDescription": "Créez une nouvelle action disponible pour les clients.",
+        "symbol": "Symbole",
+        "isin": "ISIN",
+        "companyName": "Nom de l'entreprise",
+        "initialPrice": "Prix initial (€)",
+        "initialQuantity": "Quantité initiale",
+        "createStock": "Créer l'action",
+        "stocksDescription": "Gérer les actions disponibles pour les clients",
+        "available": "Disponible",
+        "unavailable": "Indisponible",
+        "disable": "Désactiver",
+        "enable": "Activer",
+        "noStocks": "Aucune action trouvée. Créez-en une pour commencer.",
+        "currentRate": "Taux actuel",
+        "appliedRate": "Taux annuel appliqué",
+        "financialImpact": "Impact financier",
+        "savingsAccounts": "Comptes épargne",
+        "totalAmount": "Montant total",
+        "annualInterest": "Intérêts annuels",
+        "newRate": "Nouveau taux d'épargne (%)",
+        "applicationDate": "Date d'application",
+        "messageToClients": "Message aux clients",
+        "messagePlaceholder": "Informez vos clients du changement de taux...",
+        "modifyRate": "Modifier le taux d'épargne"
       },
       "notifications": {
         "title": "Notifications système",
+        "centerTitle": "Centre de notifications",
+        "description": "Gérer les notifications envoyées aux clients",
         "rateChange": "Changement de taux",
         "stockAdded": "Action ajoutée",
         "accountBanned": "Compte banni",
@@ -285,6 +339,7 @@
       "description": "Nous nous excusons pour le désagrément. Notre équipe a été notifiée et travaille avec diligence pour restaurer nos services avec l'excellence que vous méritez."
     },
     "returnHome": "Retour à l'accueil",
-    "goBack": "Retour"
+    "goBack": "Retour",
+    "footer": "Lehman Brothers Heritage • Depuis 1850"
   }
 }

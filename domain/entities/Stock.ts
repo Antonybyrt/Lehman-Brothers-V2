@@ -56,7 +56,7 @@ export class Stock {
       symbol: symbolResult.getValue(),
       name: data.name,
       isin: data.isin,
-      isActive: data.is_active,
+      isActive: data.active,
       currentPrice: priceResult.getValue()
     });
   }

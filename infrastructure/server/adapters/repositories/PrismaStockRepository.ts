@@ -51,22 +51,6 @@ export class PrismaStockRepository implements IStockRepository {
   }
 
   private mapToDomain(data: any): Stock {
-    const symbolResult = StockSymbol.create(data.symbol);
-    const priceResult = Money.create(data.current_price);
-
-    // Assuming data in DB is valid, but we should handle potential errors safely
-    // For simplicity, we assume valid data if it exists in DB
-
-    return Stock.create({
-      symbol: symbolResult.getValue(), // Or handle error
-      name: data.name,
-      isin: data.isin,
-      currentPrice: priceResult.getValue(), // Or handle error
-    }).getValue(); // Re-creating entity. 
-    // Ideally we should have a `fromPersistence` method on Stock entity or use the constructor directly if public/accessible via factory
-
-    // Using the factory creates a new ID. We need to restore the existing ID.
-    // The Stock entity doesn't expose a way to set ID via create() unless we modify it or add fromPersistence.
-    // Let's check Stock entity again.
+    return Stock.fromPersistence(data);
   }
 }

@@ -17,7 +17,8 @@
     "view": "View",
     "viewAll": "View All",
     "refresh": "Refresh",
-    "noData": "No data available"
+    "noData": "No data available",
+    "processing": "Processing..."
   },
   "nav": {
     "home": "Home",
@@ -117,7 +118,32 @@
         "currentPrice": "Current Price",
         "totalValue": "Total Value",
         "change": "Change",
-        "noInvestments": "No investments"
+        "noInvestments": "No investments",
+        "buyStock": "Buy Stock",
+        "sell": "Sell",
+        "buyStockDescription": "Select an account and the stock you wish to purchase.",
+        "selectAccount": "Select Account",
+        "availableStocks": "Available Stocks",
+        "quantity": "Quantity",
+        "totalCost": "Total Cost",
+        "confirmBuy": "Confirm Purchase",
+        "insufficientFunds": "Insufficient funds",
+        "sellStock": "Sell Stock",
+        "sellStockDescription": "Enter the quantity of shares you wish to sell.",
+        "availableShares": "Available Shares",
+        "estimatedValue": "Estimated Value",
+        "insufficientShares": "Insufficient shares",
+        "confirmSell": "Confirm Sale",
+        "portfolio": "Portfolio",
+        "orders": "Orders",
+        "myOrders": "My Orders",
+        "noOrders": "No pending orders",
+        "marketOrders": "Market Orders",
+        "noMarketOrders": "No market orders available",
+        "selectOrder": "Select an order to view details",
+        "type": "Type",
+        "price": "Price",
+        "date": "Date"
       }
     },
     "advisor": {
@@ -285,6 +311,7 @@
       "description": "We apologize for the inconvenience. Our team has been notified and is working diligently to restore our services with the excellence you deserve."
     },
     "returnHome": "Return Home",
-    "goBack": "Go Back"
+    "goBack": "Go Back",
+    "footer": "Lehman Brothers Heritage • Since 1850"
   }
 }

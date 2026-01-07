@@ -68,17 +68,18 @@ export class Portfolio {
       return Result.failure(new Error('Stock not found in portfolio'));
     }
 
+    if (currentQuantity.getValue() === quantity.getValue()) {
+      this.props.holdings.delete(stockId);
+      return Result.success(undefined);
+    }
+
     const result = currentQuantity.subtract(quantity);
     if (result.isFailure()) {
       return Result.failure(result.getError());
     }
 
     const newQuantity = result.getValue();
-    if (newQuantity.getValue() === 0) {
-      this.props.holdings.delete(stockId);
-    } else {
-      this.props.holdings.set(stockId, newQuantity);
-    }
+    this.props.holdings.set(stockId, newQuantity);
 
     return Result.success(undefined);
   }

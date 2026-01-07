@@ -61,6 +61,24 @@ export class Order {
       status: OrderStatus.CANCELLED
     });
   }
+
+  public fill(quantity: Quantity): Order {
+    const currentQuantity = this.props.quantity.getValue();
+    const fillQuantity = quantity.getValue();
+    const newQuantityValue = currentQuantity - fillQuantity;
+
+    if (newQuantityValue < 0) {
+      throw new Error('Cannot fill more than remaining quantity');
+    }
+
+    const newStatus = newQuantityValue === 0 ? OrderStatus.EXECUTED : OrderStatus.PENDING;
+
+    return new Order({
+      ...this.props,
+      quantity: Quantity.create(newQuantityValue).getValue(), // Assuming create handles 0 if we modify it or we handle it
+      status: newStatus
+    });
+  }
   public static fromPersistence(data: any): Order {
     return new Order({
       id: data.id,

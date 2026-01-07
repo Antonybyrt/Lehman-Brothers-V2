@@ -28,10 +28,10 @@ export default function Custom500() {
   return (
     <>
       <Head>
-        <title>500 - {t('title')} | Lehman Brothers Heritage</title>
+        <title>{`500 - ${t('title')} | Lehman Brothers Heritage`}</title>
         <meta name="description" content={t('description')} />
       </Head>
-      
+
       <div className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
         <ErrorLayout showBackButton={false}>
           <ErrorContent

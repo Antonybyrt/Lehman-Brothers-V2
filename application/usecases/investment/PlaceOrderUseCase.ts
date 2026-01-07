@@ -11,16 +11,20 @@ import { IPortfolioRepository } from '../../repositories/IPortfolioRepository';
 import { AccountRepository } from '../../repositories/AccountRepository';
 import { StockNotActiveError, InsufficientSharesError, InvalidOrderError } from '../../../domain/errors/InvestmentErrors';
 
+import { MatchOrdersUseCase } from './MatchOrdersUseCase';
+
 export class PlaceOrderUseCase {
   constructor(
     private readonly orderRepository: IOrderRepository,
     private readonly stockRepository: IStockRepository,
     private readonly portfolioRepository: IPortfolioRepository,
-    private readonly accountRepository: AccountRepository
+    private readonly accountRepository: AccountRepository,
+    private readonly matchOrdersUseCase: MatchOrdersUseCase
   ) { }
 
   async execute(params: {
     userId: string;
+    accountId?: string;
     stockId: string;
     type: OrderType;
     quantity: number;
@@ -29,11 +33,15 @@ export class PlaceOrderUseCase {
     // 1. Validate inputs
     const quantityResult = Quantity.create(params.quantity);
     if (quantityResult.isFailure()) return Result.failure(quantityResult.getError());
+    const quantity = quantityResult.getValue();
+    if (quantity.getValue() <= 0) {
+      return Result.failure(new Error('Order quantity must be positive'));
+    }
 
     const priceResult = Money.create(params.limitPriceInCents);
     if (priceResult.isFailure()) return Result.failure(priceResult.getError());
 
-    const quantity = quantityResult.getValue();
+    // const quantity = quantityResult.getValue(); // Already declared above
     const limitPrice = priceResult.getValue();
 
     // 2. Fetch Stock and Validate
@@ -54,33 +62,56 @@ export class PlaceOrderUseCase {
       portfolio = portfolioResult.getValue();
     }
 
-    // 4. Fetch User Accounts (for Cash Check)
-    const accounts = await this.accountRepository.findByUserId(params.userId);
-    const defaultAccount = accounts[0];
-    if (!defaultAccount) {
-      return Result.failure(new Error('User must have at least one account to place orders'));
+    // 4. Validate Business Rules
+    const FEE_IN_EUROS = 1;
+
+    // Fetch account for fees (needed for both BUY and SELL)
+    let account;
+    if (params.accountId) {
+      account = await this.accountRepository.findById(params.accountId);
+    } else {
+      // Try to find a default account
+      const accounts = await this.accountRepository.findByUserId(params.userId);
+      if (accounts.length > 0) account = accounts[0];
     }
 
-    // 5. Validate Business Rules
+    if (!account) {
+      return Result.failure(new Error('No account found to pay fees'));
+    }
+    if (account.getUserId() !== params.userId) {
+      return Result.failure(new Error('Account does not belong to user'));
+    }
+
     if (params.type === OrderType.SELL) {
       if (!portfolio.hasSufficientShares(params.stockId, quantity)) {
         const available = portfolio.getQuantityForStock(params.stockId).getValue();
         return Result.failure(new InsufficientSharesError(params.stockId, quantity.getValue(), available));
       }
+
+      // Check and Withdraw Fee
+      if (account.getBalance() < FEE_IN_EUROS) {
+        return Result.failure(new Error(`Insufficient funds for fee. Required: ${FEE_IN_EUROS}€`));
+      }
+      const feeWithdraw = account.withdraw(FEE_IN_EUROS);
+      if (feeWithdraw.isFailure()) return Result.failure(feeWithdraw.getError());
+      await this.accountRepository.save(feeWithdraw.getValue());
+
       // Deduct shares immediately (reservation)
       const removeResult = portfolio.removeShares(params.stockId, quantity);
       if (removeResult.isFailure()) return Result.failure(removeResult.getError());
       await this.portfolioRepository.save(portfolio);
+
     } else if (params.type === OrderType.BUY) {
       const totalCost = limitPrice.multiply(quantity.getValue());
       const costInEuro = totalCost.getAmountInEuro();
+      const totalRequired = costInEuro + FEE_IN_EUROS;
 
-      // Check and Withdraw Cash
-      if (defaultAccount.getBalance() < costInEuro) {
-        return Result.failure(new Error(`Insufficient funds in default account. Required: ${costInEuro}, Available: ${defaultAccount.getBalance()}`));
+      // Check and Withdraw Cash + Fee
+      if (account.getBalance() < totalRequired) {
+        return Result.failure(new Error(`Insufficient funds. Required: ${totalRequired}€ (incl. 1€ fee), Available: ${account.getBalance()}€`));
       }
 
-      const withdrawResult = defaultAccount.withdraw(costInEuro);
+      const withdrawResult = account.withdraw(totalRequired);
       if (withdrawResult.isFailure()) return Result.failure(withdrawResult.getError());
 
       await this.accountRepository.save(withdrawResult.getValue());
@@ -101,6 +132,9 @@ export class PlaceOrderUseCase {
 
     // 7. Save Order
     await this.orderRepository.save(order);
+
+    // 8. Match Orders
+    await this.matchOrdersUseCase.execute(order);
 
     return Result.success(order);
   }

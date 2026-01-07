@@ -65,4 +65,21 @@ export class PrismaOrderRepository implements IOrderRepository {
       createdAt: orderData.created_at
     }));
   }
+
+  async findByStockId(stockId: string): Promise<Order[]> {
+    const ordersData = await this.prisma.order.findMany({
+      where: { stock_id: stockId },
+    });
+
+    return ordersData.map(orderData => Order.fromPersistence({
+      id: orderData.id,
+      userId: orderData.user_id,
+      stockId: orderData.stock_id,
+      type: orderData.type as any,
+      limitPrice: orderData.limit_price,
+      quantity: orderData.quantity,
+      status: orderData.status as any,
+      createdAt: orderData.created_at
+    }));
+  }
 }

@@ -9,33 +9,45 @@ export class PrismaPortfolioRepository implements IPortfolioRepository {
   async save(portfolio: Portfolio): Promise<void> {
     const userId = portfolio.getUserId();
     const holdings = portfolio.getHoldings();
+    const currentStockIds = Array.from(holdings.keys());
 
+    // 1. Delete holdings that are no longer in the portfolio
+    if (currentStockIds.length > 0) {
+      await this.prisma.portfolio.deleteMany({
+        where: {
+          user_id: userId,
+          stock_id: {
+            notIn: currentStockIds
+          }
+        }
+      });
+    } else {
+      // If portfolio is empty, delete all holdings for this user
+      await this.prisma.portfolio.deleteMany({
+        where: {
+          user_id: userId
+        }
+      });
+    }
+
+    // 2. Upsert current holdings
     for (const [stockId, quantity] of holdings) {
-      if (quantity.getValue() > 0) {
-        await this.prisma.portfolio.upsert({
-          where: {
-            user_id_stock_id: {
-              user_id: userId,
-              stock_id: stockId,
-            },
-          },
-          update: {
-            quantity: quantity.getValue(),
-          },
-          create: {
+      await this.prisma.portfolio.upsert({
+        where: {
+          user_id_stock_id: {
             user_id: userId,
             stock_id: stockId,
-            quantity: quantity.getValue(),
           },
-        });
-      } else {
-        await this.prisma.portfolio.deleteMany({
-          where: {
-            user_id: userId,
-            stock_id: stockId
-          }
-        });
-      }
+        },
+        update: {
+          quantity: quantity.getValue(),
+        },
+        create: {
+          user_id: userId,
+          stock_id: stockId,
+          quantity: quantity.getValue(),
+        },
+      });
     }
   }
 

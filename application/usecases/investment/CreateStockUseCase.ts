@@ -7,14 +7,22 @@ import { IStockRepository } from '../../repositories/IStockRepository';
 import { IPortfolioRepository } from '../../repositories/IPortfolioRepository';
 import { UserRepository } from '../../repositories/UserRepository';
 import { Result } from '../../../domain/values/Result';
+import { User } from '../../../domain/entities/User';
+import { Email } from '../../../domain/values/Email';
+import { Password } from '../../../domain/values/Password';
+import { UserRoleValue } from '../../../domain/values/UserRole';
 
-export const BANK_PORTFOLIO_ID = 'BANK';
+import { PlaceOrderUseCase } from './PlaceOrderUseCase';
+import { OrderType } from '../../../domain/values/OrderType';
+
+export const BANK_PORTFOLIO_ID = '00000000-0000-0000-0000-000000000000';
 
 export class CreateStockUseCase {
   constructor(
     private readonly stockRepository: IStockRepository,
     private readonly portfolioRepository: IPortfolioRepository,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository,
+    private readonly placeOrderUseCase: PlaceOrderUseCase
   ) { }
 
   async execute(params: {
@@ -41,6 +49,9 @@ export class CreateStockUseCase {
 
     const quantityResult = Quantity.create(params.initialQuantity);
     if (quantityResult.isFailure()) return Result.failure(quantityResult.getError());
+    if (quantityResult.getValue().getValue() <= 0) {
+      return Result.failure(new Error('Initial quantity must be positive'));
+    }
 
     const stockResult = Stock.create({
       symbol: symbolResult.getValue(),
@@ -55,15 +66,53 @@ export class CreateStockUseCase {
     await this.stockRepository.save(stock);
 
     // Mint initial shares to Bank Portfolio
-    let bankPortfolio = await this.portfolioRepository.findByUserId(BANK_PORTFOLIO_ID);
+    const bankEmail = 'bank@lehman-brothers.com';
+    let bankUser = await this.userRepository.findByEmail(bankEmail);
+    let bankUserId = bankUser ? bankUser.getId() : BANK_PORTFOLIO_ID;
+
+    if (!bankUser) {
+      const email = Email.create(bankEmail);
+      const password = await Password.create('BankSecretPassword123!');
+      const role = UserRoleValue.create('DIRECTOR');
+
+      const newBankUser = User.fromPersistence({
+        id: BANK_PORTFOLIO_ID,
+        firstName: 'Lehman',
+        lastName: 'Brothers',
+        email,
+        password,
+        role,
+        active: true,
+        emailConfirmed: true,
+        createdAt: new Date(),
+      });
+      await this.userRepository.save(newBankUser);
+      bankUser = newBankUser;
+      bankUserId = BANK_PORTFOLIO_ID;
+    }
+
+    let bankPortfolio = await this.portfolioRepository.findByUserId(bankUserId);
     if (!bankPortfolio) {
-      const portfolioResult = Portfolio.create({ userId: BANK_PORTFOLIO_ID });
+      const portfolioResult = Portfolio.create({ userId: bankUserId });
       if (portfolioResult.isFailure()) return Result.failure(portfolioResult.getError());
       bankPortfolio = portfolioResult.getValue();
     }
 
     bankPortfolio.addShares(stock.getId(), quantityResult.getValue());
     await this.portfolioRepository.save(bankPortfolio);
+
+    const orderResult = await this.placeOrderUseCase.execute({
+      userId: bankUserId,
+      stockId: stock.getId(),
+      type: OrderType.SELL,
+      quantity: params.initialQuantity,
+      limitPriceInCents: params.initialPriceInCents
+    });
+
+    if (orderResult.isFailure()) {
+      console.error('Failed to place initial order:', orderResult.getError());
+      return Result.failure(new Error(`Stock created but failed to place initial order: ${orderResult.getError().message}`));
+    }
 
     return Result.success(stock);
   }

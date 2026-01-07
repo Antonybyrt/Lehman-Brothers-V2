@@ -7,8 +7,8 @@ export class Quantity {
     if (!Number.isInteger(value)) {
       return Result.failure(new Error('Quantity must be an integer'));
     }
-    if (value <= 0) {
-      return Result.failure(new Error('Quantity must be positive'));
+    if (value < 0) {
+      return Result.failure(new Error('Quantity cannot be negative'));
     }
     return Result.success(new Quantity(value));
   }

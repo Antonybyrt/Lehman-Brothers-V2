@@ -22,12 +22,23 @@ import {
 } from "lucide-react"
 import { ChatContainer } from "@/components/chat/ChatContainer"
 import { useTranslations } from 'next-intl'
+import { useInvestment } from "@/hooks/useInvestment"
+import { CreateStockDialog } from "@/components/dialogs"
+import { useEffect } from "react"
 import { savingsBookService, SavingsRate, SavingsBookType } from "@/services/savingsBookService"
 
 export default function DirectorDashboard() {
   const t = useTranslations('dashboard.director')
   const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState('overview')
+  const [isCreateStockOpen, setIsCreateStockOpen] = useState(false)
+  const { stocks, fetchStocks, updateStockStatus } = useInvestment()
+
+  useEffect(() => {
+    if (activeTab === 'stocks') {
+      fetchStocks(true) // Fetch all stocks including inactive
+    }
+  }, [activeTab, fetchStocks])
   const [rates, setRates] = useState<SavingsRate[]>([])
   const [loadingRates, setLoadingRates] = useState(false)
   const [newRate, setNewRate] = useState<string>('')
@@ -406,18 +417,21 @@ export default function DirectorDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center space-x-2">
                     <TrendingUp className="h-5 w-5" />
-                    <span>Stock Management</span>
+                    <span>{t('management.stocks')}</span>
                   </span>
-                  <Button className="bg-primary/90 hover:bg-primary/80">
+                  <Button
+                    className="bg-primary/90 hover:bg-primary/80"
+                    onClick={() => setIsCreateStockOpen(true)}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Stock
+                    {t('management.addStock')}
                   </Button>
                 </CardTitle>
-                <CardDescription>Manage stocks available for clients</CardDescription>
+                <CardDescription>{t('management.stocksDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockData.stocks.map((stock) => (
+                  {stocks.map((stock) => (
                     <div key={stock.id} className="flex items-center justify-between p-4 bg-background/60 rounded-lg border border-border/30">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3">
@@ -426,38 +440,40 @@ export default function DirectorDashboard() {
                           </div>
                           <div>
                             <p className="font-semibold text-foreground">{stock.symbol} - {stock.name}</p>
-                            <p className="text-sm text-muted-foreground">Market cap: {stock.marketCap}</p>
+                            <p className="text-sm text-muted-foreground">Price: {(stock.currentPrice).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</p>
                           </div>
                         </div>
                       </div>
                       <div className="text-right mr-4">
-                        <p className="text-xl font-bold text-foreground">{stock.price} $</p>
-                        <p className={`text-sm ${stock.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                          {stock.change}
-                        </p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${stock.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        <span className={`text-xs px-2 py-1 rounded-full ${stock.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                           }`}>
-                          {stock.status === 'active' ? 'Available' : 'Unavailable'}
+                          {stock.active ? t('management.available') : t('management.unavailable')}
                         </span>
                       </div>
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                          {stock.status === 'active' ? 'Disable' : 'Enable'}
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={stock.active ? "text-destructive hover:text-destructive" : "text-green-600 hover:text-green-700"}
+                          onClick={() => updateStockStatus(stock.id, !stock.active)}
+                        >
+                          {stock.active ? t('management.disable') : t('management.enable')}
                         </Button>
                       </div>
                     </div>
                   ))}
+                  {stocks.length === 0 && (
+                    <div className="text-center p-8 text-muted-foreground">
+                      {t('management.noStocks')}
+                    </div>
+                  )}
                 </div>
               </CardContent>
+              <CreateStockDialog
+                open={isCreateStockOpen}
+                onOpenChange={setIsCreateStockOpen}
+                onSuccess={() => fetchStocks(true)}
+              />
             </Card>
           )}
 
@@ -474,10 +490,10 @@ export default function DirectorDashboard() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="p-4 bg-background/60 rounded-lg border border-border/30">
-                      <h3 className="font-semibold text-foreground mb-3">Current Rate</h3>
+                      <h3 className="font-semibold text-foreground mb-3">{t('management.currentRate')}</h3>
                       <div className="text-center">
                         <p className="text-4xl font-bold text-primary">{(currentRateValue * 100).toFixed(2)}%</p>
-                        <p className="text-sm text-muted-foreground">Applied annual rate</p>
+                        <p className="text-sm text-muted-foreground">{t('management.appliedRate')}</p>
                         <div className="mt-2 flex justify-center space-x-2">
                           {(['LIVRET_A', 'LDD'] as const).map(type => (
                             <button
@@ -492,18 +508,18 @@ export default function DirectorDashboard() {
                       </div>
                     </div>
                     <div className="p-4 bg-background/60 rounded-lg border border-border/30">
-                      <h3 className="font-semibold text-foreground mb-3">Financial Impact</h3>
+                      <h3 className="font-semibold text-foreground mb-3">{t('management.financialImpact')}</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Savings accounts</span>
+                          <span className="text-sm text-muted-foreground">{t('management.savingsAccounts')}</span>
                           <span className="font-semibold">N/A</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Total amount</span>
+                          <span className="text-sm text-muted-foreground">{t('management.totalAmount')}</span>
                           <span className="font-semibold">N/A</span>
                         </div>
                         <div className="flex justify-between border-t border-border/30 pt-2">
-                          <span className="text-sm font-medium text-foreground">Annual interest</span>
+                          <span className="text-sm font-medium text-foreground">{t('management.annualInterest')}</span>
                           <span className="font-bold text-primary">N/A</span>
                         </div>
                       </div>
@@ -511,7 +527,7 @@ export default function DirectorDashboard() {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">New Savings Rate (%) for {selectedBookType.replace('_', ' ')}</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">{t('management.newRate')} for {selectedBookType.replace('_', ' ')}</label>
                       <input
                         type="number"
                         step="0.01"
@@ -522,16 +538,16 @@ export default function DirectorDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Application Date</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">{t('management.applicationDate')}</label>
                       <input
                         type="date"
                         className="w-full px-3 py-2 bg-background/60 border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Message to Clients</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">{t('management.messageToClients')}</label>
                       <textarea
-                        placeholder="Inform your clients about the rate change..."
+                        placeholder={t('management.messagePlaceholder')}
                         rows={4}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
@@ -543,7 +559,7 @@ export default function DirectorDashboard() {
                       disabled={updatingRate}
                       className="w-full bg-primary/90 hover:bg-primary/80"
                     >
-                      {updatingRate ? 'Updating...' : 'Modify Savings Rate'}
+                      {updatingRate ? 'Updating...' : '{t('management.modifyRate')}'}
                     </Button>
                   </div>
                 </div>
@@ -560,9 +576,9 @@ export default function DirectorDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5" />
-                  <span>Notification Center</span>
+                  <span>{t('notifications.centerTitle')}</span>
                 </CardTitle>
-                <CardDescription>Manage notifications sent to clients</CardDescription>
+                <CardDescription>{t('notifications.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

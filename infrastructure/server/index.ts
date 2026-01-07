@@ -27,6 +27,7 @@ import {
   PrismaStockRepository,
   PrismaOrderRepository,
   PrismaPortfolioRepository,
+  PrismaTradeRepository,
   PrismaSavingsBookRepository,
   PrismaSavingsRateRepository,
   PrismaDailyInterestRepository
@@ -63,6 +64,10 @@ import {
   PlaceOrderUseCase,
   CancelOrderUseCase,
   GetUserPortfolioUseCase,
+  GetUserOrdersUseCase,
+  GetStockOrdersUseCase,
+  MatchOrdersUseCase,
+  GetStockTradesUseCase,
   GetChatByIdUseCase,
   CreateSavingsBookUseCase,
   GetUserSavingsBooksUseCase,
@@ -102,6 +107,7 @@ const userViewRepository = new PrismaUserViewRepository(prisma);
 const stockRepository = new PrismaStockRepository(prisma);
 const orderRepository = new PrismaOrderRepository(prisma);
 const portfolioRepository = new PrismaPortfolioRepository(prisma);
+const tradeRepository = new PrismaTradeRepository(prisma);
 const savingsBookRepository = new PrismaSavingsBookRepository(prisma);
 const savingsRateRepository = new PrismaSavingsRateRepository(prisma);
 const dailyInterestRepository = new PrismaDailyInterestRepository(prisma);
@@ -132,11 +138,16 @@ const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
 const transferAccountUseCase = new TransferAccountUseCase(accountRepository, transactionRepository);
 
+// ... (existing imports)
+
+// Services
+const matchOrdersUseCase = new MatchOrdersUseCase(orderRepository, portfolioRepository, accountRepository, stockRepository, tradeRepository, userRepository);
+
 // Investment use cases
-const createStockUseCase = new CreateStockUseCase(stockRepository, portfolioRepository, userRepository);
+const placeOrderUseCase = new PlaceOrderUseCase(orderRepository, stockRepository, portfolioRepository, accountRepository, matchOrdersUseCase);
+const createStockUseCase = new CreateStockUseCase(stockRepository, portfolioRepository, userRepository, placeOrderUseCase);
 const listStocksUseCase = new ListStocksUseCase(stockRepository, userRepository);
 const updateStockStatusUseCase = new UpdateStockStatusUseCase(stockRepository, userRepository);
-const placeOrderUseCase = new PlaceOrderUseCase(orderRepository, stockRepository, portfolioRepository, accountRepository);
 const cancelOrderUseCase = new CancelOrderUseCase(orderRepository, portfolioRepository, accountRepository);
 const getUserPortfolioUseCase = new GetUserPortfolioUseCase(portfolioRepository);
 
@@ -154,6 +165,10 @@ const closeChatUseCase = new CloseChatUseCase(chatRepository);
 const getPendingChatsUseCase = new GetPendingChatsUseCase(chatRepository, messageRepository, chatViewRepository);
 const getUserChatsUseCase = new GetUserChatsUseCase(chatRepository, userViewRepository, messageRepository);
 const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository);
+
+const getUserOrdersUseCase = new GetUserOrdersUseCase(orderRepository);
+const getStockOrdersUseCase = new GetStockOrdersUseCase(orderRepository);
+const getStockTradesUseCase = new GetStockTradesUseCase(tradeRepository);
 
 // Savings use cases
 const createSavingsBookUseCase = new CreateSavingsBookUseCase(savingsBookRepository, userRepository);
@@ -187,7 +202,10 @@ const investmentController = new InvestmentController(
   updateStockStatusUseCase,
   placeOrderUseCase,
   cancelOrderUseCase,
-  getUserPortfolioUseCase
+  getUserPortfolioUseCase,
+  getUserOrdersUseCase,
+  getStockOrdersUseCase,
+  getStockTradesUseCase
 );
 
 // WebSocket Controller

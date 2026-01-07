@@ -179,6 +179,7 @@ model Trade {
   price         Int      // Execution price in cents
   quantity      Int
   fee           Int      // Fee in cents
+  aggressor_side OrderType @default(BUY) // Default to BUY for migration, but logic should set it
   timestamp     DateTime @default(now())
 
   // Relations

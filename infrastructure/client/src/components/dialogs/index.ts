@@ -4,4 +4,7 @@ export { DeleteAccountDialog } from './DeleteAccountDialog';
 export { TransferAccountDialog } from './TransferAccountDialog';
 export { CreateChatDialog } from './CreateChatDialog';
 export { TransferChatDialog } from './TransferChatDialog';
+export * from './CreateStockDialog';
+export * from './BuyStockDialog';
+export * from './SellStockDialog';
 export { CreateSavingsBookDialog } from './CreateSavingsBookDialog';

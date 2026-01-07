@@ -5,6 +5,9 @@ import { UpdateStockStatusUseCase } from '../../../../application/usecases/inves
 import { PlaceOrderUseCase } from '../../../../application/usecases/investment/PlaceOrderUseCase';
 import { CancelOrderUseCase } from '../../../../application/usecases/investment/CancelOrderUseCase';
 import { GetUserPortfolioUseCase } from '../../../../application/usecases/investment/GetUserPortfolioUseCase';
+import { GetUserOrdersUseCase } from '../../../../application/usecases/investment/GetUserOrdersUseCase';
+import { GetStockOrdersUseCase } from '../../../../application/usecases/investment/GetStockOrdersUseCase';
+import { GetStockTradesUseCase } from '../../../../application/usecases/investment/GetStockTradesUseCase';
 import { OrderType } from '../../../../domain/values/OrderType';
 
 export class InvestmentController {
@@ -14,7 +17,10 @@ export class InvestmentController {
     private readonly updateStockStatusUseCase: UpdateStockStatusUseCase,
     private readonly placeOrderUseCase: PlaceOrderUseCase,
     private readonly cancelOrderUseCase: CancelOrderUseCase,
-    private readonly getUserPortfolioUseCase: GetUserPortfolioUseCase
+    private readonly getUserPortfolioUseCase: GetUserPortfolioUseCase,
+    private readonly getUserOrdersUseCase: GetUserOrdersUseCase,
+    private readonly getStockOrdersUseCase: GetStockOrdersUseCase,
+    private readonly getStockTradesUseCase: GetStockTradesUseCase
   ) { }
 
   async createStock(req: Request, res: Response) {
@@ -85,7 +91,7 @@ export class InvestmentController {
   }
 
   async placeOrder(req: Request, res: Response) {
-    const { stockId, type, quantity, limitPriceInCents } = req.body;
+    const { stockId, type, quantity, limitPriceInCents, accountId } = req.body;
     const userId = (req as any).user?.userId as string;
 
     if (!userId) {
@@ -94,6 +100,7 @@ export class InvestmentController {
 
     const result = await this.placeOrderUseCase.execute({
       userId,
+      accountId,
       stockId,
       type: type as OrderType,
       quantity,
@@ -151,5 +158,80 @@ export class InvestmentController {
       userId: portfolio.getUserId(),
       holdings
     });
+  }
+
+  async getUserOrders(req: Request, res: Response) {
+    const userId = (req as any).user?.userId as string;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const result = await this.getUserOrdersUseCase.execute(userId);
+
+    if (result.isFailure()) {
+      return res.status(400).json({ error: result.getError().message });
+    }
+
+    const orders = result.getValue();
+    return res.json(orders.map(order => ({
+      id: order.getId(),
+      stockId: order.getStockId(),
+      type: order.getType(),
+      quantity: order.getQuantity().getValue(),
+      limitPrice: order.getLimitPrice().getAmountInCents(),
+      status: order.getStatus(),
+      createdAt: order.getTimestamp()
+    })));
+  }
+
+  async getStockOrders(req: Request, res: Response) {
+    const { stockId } = req.params;
+
+    if (!stockId) {
+      return res.status(400).json({ error: 'Stock ID is required' });
+    }
+
+    const result = await this.getStockOrdersUseCase.execute(stockId);
+
+    if (result.isFailure()) {
+      return res.status(400).json({ error: result.getError().message });
+    }
+
+    const orders = result.getValue();
+    return res.json(orders.map(order => ({
+      id: order.getId(),
+      stockId: order.getStockId(),
+      type: order.getType(),
+      quantity: order.getQuantity().getValue(),
+      limitPrice: order.getLimitPrice().getAmountInCents(),
+      status: order.getStatus(),
+      createdAt: order.getTimestamp()
+    })));
+  }
+
+  async getStockTrades(req: Request, res: Response) {
+    const { stockId } = req.params;
+
+    if (!stockId) {
+      return res.status(400).json({ error: 'Stock ID is required' });
+    }
+
+    const result = await this.getStockTradesUseCase.execute(stockId);
+
+    if (result.isFailure()) {
+      return res.status(400).json({ error: result.getError().message });
+    }
+
+    const trades = result.getValue();
+    return res.json(trades.map(trade => ({
+      id: trade.getId(),
+      buyOrderId: trade.getBuyOrderId(),
+      sellOrderId: trade.getSellOrderId(),
+      executionPrice: trade.getExecutionPrice().getAmountInCents(),
+      quantity: trade.getQuantity().getValue(),
+      aggressorSide: trade.getAggressorSide(),
+      timestamp: trade.getTimestamp()
+    })));
   }
 }

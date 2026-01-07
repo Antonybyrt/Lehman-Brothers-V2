@@ -4,3 +4,7 @@ export * from './UpdateStockStatusUseCase';
 export * from './PlaceOrderUseCase';
 export * from './CancelOrderUseCase';
 export * from './GetUserPortfolioUseCase';
+export * from './GetUserOrdersUseCase';
+export * from './GetStockOrdersUseCase';
+export * from './MatchOrdersUseCase';
+export * from './GetStockTradesUseCase';
