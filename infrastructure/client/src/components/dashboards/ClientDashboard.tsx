@@ -23,12 +23,13 @@ import {
 } from "lucide-react"
 import { accountService, Account } from "@/services/accountService"
 import { CreateAccountDialog, EditAccountDialog, DeleteAccountDialog, TransferAccountDialog } from "@/components/dialogs"
-  MessageSquare
-} from "lucide-react"
 import { ChatContainer } from "@/components/chat/ChatContainer"
+import { useTranslations } from 'next-intl'
 
 export default function ClientDashboard() {
   const router = useRouter()
+  const t = useTranslations('dashboard.client')
+  const tCommon = useTranslations('common')
   const [activeTab, setActiveTab] = useState('overview')
   const [accounts, setAccounts] = useState<Account[]>([])
   const [loading, setLoading] = useState(true)
@@ -128,12 +129,12 @@ export default function ClientDashboard() {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'accounts', label: 'Accounts', icon: CreditCard },
-    { id: 'transactions', label: 'Transactions', icon: ArrowUpDown },
-    { id: 'investments', label: 'Investments', icon: TrendingUp },
-    { id: 'savings', label: 'Savings', icon: PiggyBank },
-    { id: 'contact', label: 'Contact', icon: MessageSquare }
+    { id: 'overview', label: t('tabs.overview'), icon: BarChart3 },
+    { id: 'accounts', label: t('tabs.accounts'), icon: CreditCard },
+    { id: 'transactions', label: t('tabs.transactions'), icon: ArrowUpDown },
+    { id: 'investments', label: t('tabs.investments'), icon: TrendingUp },
+    { id: 'savings', label: t('tabs.accounts'), icon: PiggyBank },
+    { id: 'contact', label: t('tabs.chat'), icon: MessageSquare }
   ]
 
   return (
@@ -154,10 +155,10 @@ export default function ClientDashboard() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl font-prestige font-bold text-foreground/90 mb-2">
-            Welcome to your client space
+            {t('welcome')}
           </h1>
           <p className="text-muted-foreground/80 text-lg">
-            Manage your accounts, investments and savings securely
+            {t('title')}
           </p>
         </motion.div>
 
@@ -172,7 +173,7 @@ export default function ClientDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Balance</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.totalBalance')}</p>
                   <p className="text-2xl font-bold text-foreground">{totalBalance.toLocaleString('fr-FR')} €</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-primary" />
@@ -184,7 +185,7 @@ export default function ClientDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Monthly Savings</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.monthlySavings')}</p>
                   <p className="text-2xl font-bold text-foreground">{mockData.monthlySavings.toLocaleString('fr-FR')} €</p>
                 </div>
                 <PiggyBank className="h-8 w-8 text-green-500" />
@@ -196,7 +197,7 @@ export default function ClientDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Portfolio</p>
+                  <p className="text-sm text-muted-foreground">{t('stats.investmentValue')}</p>
                   <p className="text-2xl font-bold text-foreground">{mockData.investmentValue.toLocaleString('fr-FR')} €</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-blue-500" />
@@ -245,9 +246,9 @@ export default function ClientDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <CreditCard className="h-5 w-5" />
-                    <span>My Accounts</span>
+                    <span>{t('accounts.title')}</span>
                   </CardTitle>
-                  <CardDescription>Overview of your accounts</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {loading ? (
@@ -271,10 +272,10 @@ export default function ClientDashboard() {
                       </div>
 
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No accounts yet
+                        {t('accounts.noAccounts')}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Create your first account to get started
+                        {t('accounts.createFirst')}
                       </p>
 
                       <Button
@@ -282,7 +283,7 @@ export default function ClientDashboard() {
                         className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg"
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Create Account
+                        {t('accounts.createNew')}
                       </Button>
                     </motion.div>
                   ) : (
@@ -293,7 +294,7 @@ export default function ClientDashboard() {
                             <p className="font-medium text-foreground">{account.name}</p>
                             <p className="text-sm text-muted-foreground">{account.iban}</p>
                             {account.isSavings && (
-                              <p className="text-xs text-green-600">Savings Account</p>
+                              <p className="text-xs text-green-600">{t('accounts.savings')}</p>
                             )}
                           </div>
                           <div className="text-right">
@@ -306,7 +307,7 @@ export default function ClientDashboard() {
                         className="w-full mt-4 bg-primary/90 hover:bg-primary/80"
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        New Account
+                        {t('accounts.createNew')}
                       </Button>
                     </>
                   )}
@@ -318,9 +319,9 @@ export default function ClientDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Activity className="h-5 w-5" />
-                    <span>Recent Transactions</span>
+                    <span>{t('transactions.title')}</span>
                   </CardTitle>
-                  <CardDescription>Your latest transactions</CardDescription>
+                  <CardDescription>{t('title')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {mockData.recentTransactions.map((transaction) => (
@@ -339,7 +340,7 @@ export default function ClientDashboard() {
                     </div>
                   ))}
                   <Button variant="outline" className="w-full mt-4">
-                    View All Transactions
+                    {t('transactions.noTransactions')}
                   </Button>
                 </CardContent>
               </Card>
@@ -352,17 +353,17 @@ export default function ClientDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center space-x-2">
                     <CreditCard className="h-5 w-5" />
-                    <span>Account Management</span>
+                    <span>{t('accounts.title')}</span>
                   </span>
                   <Button
                     onClick={() => setIsCreateDialogOpen(true)}
                     className="bg-primary/90 hover:bg-primary/80"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    New Account
+                    {t('accounts.createNew')}
                   </Button>
                 </CardTitle>
-                <CardDescription>Create, modify or delete your accounts</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -387,10 +388,10 @@ export default function ClientDashboard() {
                       </div>
 
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No accounts found
+                        {t('accounts.noAccounts')}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Create your first account to start managing your finances
+                        {t('accounts.createFirst')}
                       </p>
 
                       <Button
@@ -398,7 +399,7 @@ export default function ClientDashboard() {
                         className="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg"
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        New Account
+                        {t('accounts.createNew')}
                       </Button>
                     </motion.div>
                   ) : (
@@ -413,7 +414,7 @@ export default function ClientDashboard() {
                               <p className="font-semibold text-foreground">{account.name}</p>
                               <p className="text-sm text-muted-foreground">{account.iban}</p>
                               <p className="text-xs text-muted-foreground">
-                                {account.isSavings ? 'Savings Account' : 'Current Account'}
+                                {account.isSavings ? t('accounts.savings') : t('accounts.current')}
                               </p>
                             </div>
                           </div>
@@ -429,7 +430,7 @@ export default function ClientDashboard() {
                             className="text-primary hover:text-primary"
                           >
                             <ArrowRightLeft className="h-4 w-4 mr-1" />
-                            Transfer
+                            {t('accounts.balance')}
                           </Button>
                           <Button
                             variant="outline"
@@ -444,7 +445,7 @@ export default function ClientDashboard() {
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeleteAccount(account)}
                           >
-                            Delete
+                            {tCommon('delete')}
                           </Button>
                         </div>
                       </div>
@@ -461,14 +462,14 @@ export default function ClientDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center space-x-2">
                     <TrendingUp className="h-5 w-5" />
-                    <span>Stock Portfolio</span>
+                    <span>{t('investments.title')}</span>
                   </span>
                   <Button className="bg-primary/90 hover:bg-primary/80">
                     <Plus className="mr-2 h-4 w-4" />
-                    New Order
+                    {t('investments.title')}
                   </Button>
                 </CardTitle>
-                <CardDescription>Manage your stock investments</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -493,10 +494,10 @@ export default function ClientDashboard() {
                       </div>
                       <div className="flex space-x-2">
                         <Button variant="outline" size="sm">
-                          Sell
+                          {t('investments.noInvestments')}
                         </Button>
                         <Button variant="outline" size="sm">
-                          Buy
+                          {t('investments.noInvestments')}
                         </Button>
                       </div>
                     </div>
@@ -511,9 +512,9 @@ export default function ClientDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <PiggyBank className="h-5 w-5" />
-                  <span>Savings Accounts</span>
+                  <span>{t('accounts.savings')}</span>
                 </CardTitle>
-                <CardDescription>Your interest-bearing accounts</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -538,10 +539,10 @@ export default function ClientDashboard() {
                       </div>
 
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        No savings accounts
+                        {t('accounts.noAccounts')}
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Open a savings account to grow your money
+                        {t('accounts.createFirst')}
                       </p>
 
                       <Button
@@ -549,7 +550,7 @@ export default function ClientDashboard() {
                         className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
                       >
                         <PiggyBank className="mr-2 h-4 w-4" />
-                        Open Savings Account
+                        {t('accounts.createSavings')}
                       </Button>
                     </motion.div>
                   ) : (
@@ -562,7 +563,7 @@ export default function ClientDashboard() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-bold text-foreground">{account.balance.toLocaleString('fr-FR')} €</p>
-                            <p className="text-sm text-green-600">Savings Account</p>
+                            <p className="text-sm text-green-600">{t('accounts.savings')}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -583,7 +584,7 @@ export default function ClientDashboard() {
                     className="w-full bg-primary/90 hover:bg-primary/80"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Open a Savings Account
+                    {t('accounts.createSavings')}
                   </Button>
                 </div>
               </CardContent>
@@ -595,9 +596,9 @@ export default function ClientDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <MessageSquare className="h-5 w-5" />
-                  <span>Contact Support</span>
+                  <span>{t('tabs.chat')}</span>
                 </CardTitle>
-                <CardDescription>Chat with our advisors in real-time</CardDescription>
+                <CardDescription>{t('title')}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <ChatContainer />

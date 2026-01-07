@@ -1,0 +1,286 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Soumettre",
+    "search": "Rechercher",
+    "actions": "Actions",
+    "view": "Voir",
+    "viewAll": "Voir tout",
+    "refresh": "Actualiser",
+    "noData": "Aucune donnée disponible"
+  },
+  "nav": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion"
+  },
+  "hero": {
+    "title": "Lehman Brothers",
+    "subtitle": "Heritage",
+    "description": "Depuis 1850, nous façonnons l'excellence bancaire avec une tradition d'innovation et de confiance. Votre patrimoine mérite le prestige.",
+    "cta": {
+      "discover": "Découvrir nos services",
+      "history": "Notre histoire"
+    },
+    "footer": "Lehman Brothers Heritage • Depuis 1850"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Connectez-vous à votre compte",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "Votre mot de passe",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "signUp": "Créer un compte",
+      "error": "Identifiants invalides"
+    },
+    "register": {
+      "title": "Inscription",
+      "subtitle": "Créez votre compte",
+      "firstName": "Prénom",
+      "firstNamePlaceholder": "Jean",
+      "lastName": "Nom",
+      "lastNamePlaceholder": "Dupont",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "Minimum 8 caractères",
+      "submit": "Créer un compte",
+      "hasAccount": "Vous avez déjà un compte ?",
+      "signIn": "Se connecter",
+      "success": "Compte créé avec succès"
+    }
+  },
+  "dashboard": {
+    "client": {
+      "title": "Tableau de bord Client",
+      "welcome": "Bienvenue dans votre espace",
+      "tabs": {
+        "overview": "Vue d'ensemble",
+        "accounts": "Mes comptes",
+        "transactions": "Transactions",
+        "investments": "Investissements",
+        "chat": "Support"
+      },
+      "stats": {
+        "totalBalance": "Solde total",
+        "monthlyIncome": "Revenus mensuels",
+        "activeAccounts": "Comptes actifs",
+        "monthlySavings": "Épargne mensuelle",
+        "investmentValue": "Valeur investissements"
+      },
+      "accounts": {
+        "title": "Mes comptes",
+        "createNew": "Créer un compte",
+        "createSavings": "Créer un compte épargne",
+        "noAccounts": "Aucun compte",
+        "createFirst": "Créez votre premier compte pour commencer",
+        "iban": "IBAN",
+        "balance": "Solde",
+        "type": "Type",
+        "current": "Courant",
+        "savings": "Épargne"
+      },
+      "transactions": {
+        "title": "Transactions récentes",
+        "from": "De",
+        "to": "Vers",
+        "amount": "Montant",
+        "date": "Date",
+        "noTransactions": "Aucune transaction récente"
+      },
+      "investments": {
+        "title": "Portefeuille d'investissements",
+        "symbol": "Symbole",
+        "name": "Nom",
+        "shares": "Actions",
+        "currentPrice": "Prix actuel",
+        "totalValue": "Valeur totale",
+        "change": "Variation",
+        "noInvestments": "Aucun investissement"
+      }
+    },
+    "advisor": {
+      "title": "Tableau de bord Conseiller",
+      "welcome": "Espace Conseiller",
+      "tabs": {
+        "overview": "Vue d'ensemble",
+        "clients": "Clients",
+        "chats": "Conversations",
+        "loans": "Prêts",
+        "analytics": "Analytiques"
+      },
+      "stats": {
+        "pendingChats": "Conversations en attente",
+        "activeLoans": "Prêts actifs",
+        "totalClients": "Clients totaux",
+        "monthlyRevenue": "Revenus mensuels"
+      },
+      "chats": {
+        "title": "Conversations clients",
+        "pending": "En attente",
+        "active": "Actives",
+        "closed": "Fermées",
+        "priority": "Priorité",
+        "subject": "Sujet",
+        "client": "Client",
+        "status": "Statut",
+        "noChats": "Aucune conversation"
+      },
+      "loans": {
+        "title": "Prêts en cours",
+        "client": "Client",
+        "amount": "Montant",
+        "remaining": "Restant",
+        "monthlyPayment": "Mensualité",
+        "rate": "Taux",
+        "status": "Statut",
+        "active": "Actif",
+        "completed": "Terminé",
+        "noLoans": "Aucun prêt"
+      }
+    },
+    "director": {
+      "title": "Tableau de bord Directeur",
+      "welcome": "Espace Direction",
+      "tabs": {
+        "overview": "Vue d'ensemble",
+        "accounts": "Comptes",
+        "management": "Gestion",
+        "analytics": "Analytiques",
+        "notifications": "Notifications"
+      },
+      "stats": {
+        "totalRevenue": "Revenu total",
+        "activeClients": "Clients actifs",
+        "totalAssets": "Actifs totaux",
+        "monthlyGrowth": "Croissance mensuelle",
+        "systemHealth": "Santé du système"
+      },
+      "accounts": {
+        "title": "Comptes système",
+        "client": "Client",
+        "iban": "IBAN",
+        "balance": "Solde",
+        "status": "Statut",
+        "type": "Type",
+        "active": "Actif",
+        "suspended": "Suspendu",
+        "current": "Courant",
+        "savings": "Épargne",
+        "noAccounts": "Aucun compte"
+      },
+      "management": {
+        "title": "Gestion du système",
+        "savingsRate": "Taux d'épargne",
+        "addStock": "Ajouter action",
+        "banAccount": "Bannir compte",
+        "users": "Utilisateurs",
+        "stocks": "Actions",
+        "settings": "Paramètres"
+      },
+      "notifications": {
+        "title": "Notifications système",
+        "rateChange": "Changement de taux",
+        "stockAdded": "Action ajoutée",
+        "accountBanned": "Compte banni",
+        "noNotifications": "Aucune notification"
+      },
+      "analytics": {
+        "title": "Analytiques",
+        "overview": "Vue d'ensemble",
+        "performance": "Performance",
+        "trends": "Tendances"
+      }
+    }
+  },
+  "account": {
+    "create": {
+      "title": "Créer un compte",
+      "name": "Nom du compte",
+      "namePlaceholder": "Mon compte principal",
+      "type": "Type de compte",
+      "current": "Compte courant",
+      "savings": "Compte épargne",
+      "initialBalance": "Solde initial",
+      "submit": "Créer le compte",
+      "success": "Compte créé avec succès"
+    },
+    "edit": {
+      "title": "Modifier le compte",
+      "name": "Nom du compte",
+      "submit": "Enregistrer",
+      "success": "Compte modifié avec succès"
+    },
+    "delete": {
+      "title": "Supprimer le compte",
+      "warning": "Attention",
+      "message": "Cette action est irréversible. Tous les fonds seront transférés vers le compte sélectionné.",
+      "transferTo": "Transférer vers",
+      "submit": "Supprimer le compte",
+      "success": "Compte supprimé avec succès"
+    },
+    "transfer": {
+      "title": "Transférer des fonds",
+      "from": "Depuis le compte",
+      "to": "Vers",
+      "toPlaceholder": "Sélectionner un compte ou saisir un IBAN",
+      "amount": "Montant",
+      "amountPlaceholder": "0.00",
+      "description": "Description (optionnelle)",
+      "descriptionPlaceholder": "Virement mensuel",
+      "availableBalance": "Solde disponible",
+      "submit": "Transférer",
+      "success": "Transfert effectué avec succès"
+    }
+  },
+  "chat": {
+    "title": "Support client",
+    "newChat": "Nouvelle conversation",
+    "subject": "Sujet",
+    "subjectPlaceholder": "De quoi avez-vous besoin ?",
+    "message": "Message",
+    "messagePlaceholder": "Écrivez votre message...",
+    "send": "Envoyer",
+    "typing": "est en train d'écrire...",
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "closed": "Fermé",
+    "noChats": "Aucune conversation",
+    "closeChat": "Fermer la conversation",
+    "transferChat": "Transférer la conversation",
+    "priority": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute"
+    }
+  },
+  "errors": {
+    "404": {
+      "title": "Page non trouvée",
+      "description": "La page que vous recherchez a peut-être été déplacée, supprimée ou n'a jamais existé. Nos services prestigieux sont toujours disponibles sur notre page d'accueil."
+    },
+    "500": {
+      "title": "Erreur interne du serveur",
+      "description": "Nous nous excusons pour le désagrément. Notre équipe a été notifiée et travaille avec diligence pour restaurer nos services avec l'excellence que vous méritez."
+    },
+    "returnHome": "Retour à l'accueil",
+    "goBack": "Retour"
+  }
+}
+

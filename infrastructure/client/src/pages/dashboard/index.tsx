@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Dashboard from "@/components/Dashboard";
+import { GetStaticPropsContext } from 'next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,4 +18,12 @@ export default function DashboardPage() {
       <Dashboard />
     </div>
   );
+}
+
+export async function getStaticProps({ locale }: GetStaticPropsContext) {
+  return {
+    props: {
+      messages: (await import(`../../../messages/${locale}.json`)).default
+    }
+  };
 }

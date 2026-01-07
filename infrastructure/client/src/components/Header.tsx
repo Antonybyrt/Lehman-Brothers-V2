@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { motion } from "framer-motion"
 import { LogOut } from "lucide-react"
 import { authService } from "@/services/authService"
+import { useTranslations } from 'next-intl'
 
 export function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const t = useTranslations('nav')
 
   useEffect(() => {
     // Check if user is authenticated
@@ -53,6 +56,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center space-x-3">
+          <LanguageSwitcher />
           {isAuthenticated ? (
             <Button 
               variant="ghost" 
@@ -61,7 +65,7 @@ export function Header() {
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              {t('logout')}
             </Button>
           ) : (
             <>
@@ -71,14 +75,14 @@ export function Header() {
                 className="hover:bg-primary/10 transition-all duration-300 font-medium bg-background/60"
                 onClick={() => window.location.href = '/login'}
               >
-                Login
+                {t('login')}
               </Button>
               <Button 
                 size="sm" 
                 className="bg-primary/90 hover:bg-primary/80 shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
                 onClick={() => window.location.href = '/register'}
               >
-                Register
+                {t('register')}
               </Button>
             </>
           )}

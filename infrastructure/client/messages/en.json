@@ -1,0 +1,286 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "actions": "Actions",
+    "view": "View",
+    "viewAll": "View All",
+    "refresh": "Refresh",
+    "noData": "No data available"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "hero": {
+    "title": "Lehman Brothers",
+    "subtitle": "Heritage",
+    "description": "Since 1850, we have been shaping banking excellence with a tradition of innovation and trust. Your wealth deserves prestige.",
+    "cta": {
+      "discover": "Discover our services",
+      "history": "Our history"
+    },
+    "footer": "Lehman Brothers Heritage • Since 1850"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "subtitle": "Sign in to your account",
+      "email": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Your password",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "signUp": "Create account",
+      "error": "Invalid credentials"
+    },
+    "register": {
+      "title": "Register",
+      "subtitle": "Create your account",
+      "firstName": "First name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "Doe",
+      "email": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Minimum 8 characters",
+      "submit": "Create account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "success": "Account created successfully"
+    }
+  },
+  "dashboard": {
+    "client": {
+      "title": "Client Dashboard",
+      "welcome": "Welcome to your space",
+      "tabs": {
+        "overview": "Overview",
+        "accounts": "My Accounts",
+        "transactions": "Transactions",
+        "investments": "Investments",
+        "chat": "Support"
+      },
+      "stats": {
+        "totalBalance": "Total Balance",
+        "monthlyIncome": "Monthly Income",
+        "activeAccounts": "Active Accounts",
+        "monthlySavings": "Monthly Savings",
+        "investmentValue": "Investment Value"
+      },
+      "accounts": {
+        "title": "My Accounts",
+        "createNew": "Create Account",
+        "createSavings": "Create Savings Account",
+        "noAccounts": "No accounts",
+        "createFirst": "Create your first account to get started",
+        "iban": "IBAN",
+        "balance": "Balance",
+        "type": "Type",
+        "current": "Current",
+        "savings": "Savings"
+      },
+      "transactions": {
+        "title": "Recent Transactions",
+        "from": "From",
+        "to": "To",
+        "amount": "Amount",
+        "date": "Date",
+        "noTransactions": "No recent transactions"
+      },
+      "investments": {
+        "title": "Investment Portfolio",
+        "symbol": "Symbol",
+        "name": "Name",
+        "shares": "Shares",
+        "currentPrice": "Current Price",
+        "totalValue": "Total Value",
+        "change": "Change",
+        "noInvestments": "No investments"
+      }
+    },
+    "advisor": {
+      "title": "Advisor Dashboard",
+      "welcome": "Advisor Space",
+      "tabs": {
+        "overview": "Overview",
+        "clients": "Clients",
+        "chats": "Conversations",
+        "loans": "Loans",
+        "analytics": "Analytics"
+      },
+      "stats": {
+        "pendingChats": "Pending Chats",
+        "activeLoans": "Active Loans",
+        "totalClients": "Total Clients",
+        "monthlyRevenue": "Monthly Revenue"
+      },
+      "chats": {
+        "title": "Client Conversations",
+        "pending": "Pending",
+        "active": "Active",
+        "closed": "Closed",
+        "priority": "Priority",
+        "subject": "Subject",
+        "client": "Client",
+        "status": "Status",
+        "noChats": "No conversations"
+      },
+      "loans": {
+        "title": "Active Loans",
+        "client": "Client",
+        "amount": "Amount",
+        "remaining": "Remaining",
+        "monthlyPayment": "Monthly Payment",
+        "rate": "Rate",
+        "status": "Status",
+        "active": "Active",
+        "completed": "Completed",
+        "noLoans": "No loans"
+      }
+    },
+    "director": {
+      "title": "Director Dashboard",
+      "welcome": "Executive Space",
+      "tabs": {
+        "overview": "Overview",
+        "accounts": "Accounts",
+        "management": "Management",
+        "analytics": "Analytics",
+        "notifications": "Notifications"
+      },
+      "stats": {
+        "totalRevenue": "Total Revenue",
+        "activeClients": "Active Clients",
+        "totalAssets": "Total Assets",
+        "monthlyGrowth": "Monthly Growth",
+        "systemHealth": "System Health"
+      },
+      "accounts": {
+        "title": "System Accounts",
+        "client": "Client",
+        "iban": "IBAN",
+        "balance": "Balance",
+        "status": "Status",
+        "type": "Type",
+        "active": "Active",
+        "suspended": "Suspended",
+        "current": "Current",
+        "savings": "Savings",
+        "noAccounts": "No accounts"
+      },
+      "management": {
+        "title": "System Management",
+        "savingsRate": "Savings Rate",
+        "addStock": "Add Stock",
+        "banAccount": "Ban Account",
+        "users": "Users",
+        "stocks": "Stocks",
+        "settings": "Settings"
+      },
+      "notifications": {
+        "title": "System Notifications",
+        "rateChange": "Rate Change",
+        "stockAdded": "Stock Added",
+        "accountBanned": "Account Banned",
+        "noNotifications": "No notifications"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "overview": "Overview",
+        "performance": "Performance",
+        "trends": "Trends"
+      }
+    }
+  },
+  "account": {
+    "create": {
+      "title": "Create Account",
+      "name": "Account Name",
+      "namePlaceholder": "My main account",
+      "type": "Account Type",
+      "current": "Current Account",
+      "savings": "Savings Account",
+      "initialBalance": "Initial Balance",
+      "submit": "Create Account",
+      "success": "Account created successfully"
+    },
+    "edit": {
+      "title": "Edit Account",
+      "name": "Account Name",
+      "submit": "Save",
+      "success": "Account updated successfully"
+    },
+    "delete": {
+      "title": "Delete Account",
+      "warning": "Warning",
+      "message": "This action is irreversible. All funds will be transferred to the selected account.",
+      "transferTo": "Transfer to",
+      "submit": "Delete Account",
+      "success": "Account deleted successfully"
+    },
+    "transfer": {
+      "title": "Transfer Funds",
+      "from": "From Account",
+      "to": "To",
+      "toPlaceholder": "Select an account or enter an IBAN",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Monthly transfer",
+      "availableBalance": "Available Balance",
+      "submit": "Transfer",
+      "success": "Transfer completed successfully"
+    }
+  },
+  "chat": {
+    "title": "Customer Support",
+    "newChat": "New Chat",
+    "subject": "Subject",
+    "subjectPlaceholder": "What do you need help with?",
+    "message": "Message",
+    "messagePlaceholder": "Write your message...",
+    "send": "Send",
+    "typing": "is typing...",
+    "online": "Online",
+    "offline": "Offline",
+    "closed": "Closed",
+    "noChats": "No conversations",
+    "closeChat": "Close chat",
+    "transferChat": "Transfer chat",
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
+  },
+  "errors": {
+    "404": {
+      "title": "Page Not Found",
+      "description": "The page you're looking for may have been moved, deleted, or never existed. Our prestigious services are always available on our homepage."
+    },
+    "500": {
+      "title": "Internal Server Error",
+      "description": "We apologize for the inconvenience. Our team has been notified and is working diligently to restore our services with the excellence you deserve."
+    },
+    "returnHome": "Return Home",
+    "goBack": "Go Back"
+  }
+}
+
