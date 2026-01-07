@@ -115,7 +115,6 @@ const getChatByIdUseCase = new GetChatByIdUseCase(chatRepository);
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
 const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase, transferAccountUseCase);
-const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase);
 const chatRestController = new ChatRestController(
   createChatUseCase,
   getMessagesBeforeUseCase,

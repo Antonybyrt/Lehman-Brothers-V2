@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Chat, ChatMessage } from '@/types/chat';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://10.184.23.186:3000';
 
 // Interfaces spécifiques au service (requêtes/réponses API)
 

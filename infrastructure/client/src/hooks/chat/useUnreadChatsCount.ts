@@ -44,7 +44,6 @@ export function usePendingChatsCount() {
 
     // Listen to WebSocket events for real-time updates
     if (token) {
-      // Use WebSocket subprotocol to pass the JWT token securely
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'
       let ws: WebSocket | null = null
 
