@@ -13,12 +13,14 @@ interface CreateAccountDialogProps {
   isOpen: boolean
   onClose: () => void
   onAccountCreated?: () => void
+  isSavings?: boolean
 }
 
 export function CreateAccountDialog({
   isOpen,
   onClose,
-  onAccountCreated
+  onAccountCreated,
+  isSavings = false
 }: CreateAccountDialogProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -44,7 +46,7 @@ export function CreateAccountDialog({
 
       const response = await accountService.createAccount({
         name: formData.name.trim(),
-        isSavings: false,
+        isSavings: isSavings,
         initialBalance: formData.initialBalance ? parseFloat(formData.initialBalance) : undefined
       })
 
@@ -102,10 +104,10 @@ export function CreateAccountDialog({
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">
-                    Create Account
+                    {isSavings ? 'Create Savings Account' : 'Create Account'}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Create a new current account
+                    {isSavings ? 'Create a new savings account' : 'Create a new current account'}
                   </p>
                 </div>
               </div>

@@ -28,10 +28,10 @@ export default function Custom404() {
   return (
     <>
       <Head>
-        <title>404 - {t('title')} | Lehman Brothers Heritage</title>
+        <title>{`404 - ${t('title')} | Lehman Brothers Heritage`}</title>
         <meta name="description" content={t('description')} />
       </Head>
-      
+
       <div className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
         <ErrorLayout showBackButton={true}>
           <ErrorContent

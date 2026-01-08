@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { CreateAccountUseCase, GetUserAccountsUseCase, GetAccountByIdUseCase, UpdateAccountUseCase, DeleteAccountUseCase, TransferAccountUseCase } from '@lehman-brothers/application';
+import { CreateAccountUseCase, GetUserAccountsUseCase, GetAccountByIdUseCase, UpdateAccountUseCase, DeleteAccountUseCase, TransferAccountUseCase, GetAllAccountsUseCase } from '@lehman-brothers/application';
 import { exhaustive } from 'exhaustive';
 import { AuthenticatedRequest } from '../../middleware/authMiddleware';
 
@@ -10,8 +10,9 @@ export class AccountController {
     private readonly getAccountByIdUseCase: GetAccountByIdUseCase,
     private readonly updateAccountUseCase: UpdateAccountUseCase,
     private readonly deleteAccountUseCase: DeleteAccountUseCase,
-    private readonly transferAccountUseCase: TransferAccountUseCase
-  ) { }
+    private readonly transferAccountUseCase: TransferAccountUseCase,
+    private readonly getAllAccountsUseCase: GetAllAccountsUseCase
+  ) {  }
 
   public async createAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { name, isSavings, initialBalance } = req.body;
@@ -86,6 +87,46 @@ export class AccountController {
         const statusCode = exhaustive(String(result.errorType), {
           'validation': () => 400,
           'not_found': () => 404,
+          'server': () => 500,
+          'undefined': () => 400
+        });
+
+        res.status(statusCode).json({
+          success: false,
+          error: result.error,
+          type: result.errorType || 'unknown'
+        });
+      }
+    });
+  }
+
+  public async getAllAccounts(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        error: 'User authentication required'
+      });
+      return;
+    }
+
+    const result = await this.getAllAccountsUseCase.execute({
+      userId,
+    });
+
+    exhaustive(String(result.success), {
+      'true': () => {
+        res.status(200).json({
+          success: true,
+          accounts: result.accounts
+        });
+      },
+      'false': () => {
+        const statusCode = exhaustive(String(result.errorType), {
+          'validation': () => 400,
+          'not_found': () => 404,
+          'unauthorized': () => 403,
           'server': () => 500,
           'undefined': () => 400
         });

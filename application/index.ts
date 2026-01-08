@@ -5,3 +5,4 @@ export * from './usecases/account';
 export * from './usecases/chat';
 export * from './usecases/savings';
 export * from './usecases/transaction';
+export * from './usecases/investment';
