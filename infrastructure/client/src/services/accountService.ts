@@ -103,7 +103,7 @@ class AccountService {
     } catch (error: unknown) {
       // Handle 404/500 errors with redirect
       const httpError = handleHttpError(error, true);
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: CreateAccountResponse; status?: number } };
         if (axiosError.response?.data) {
@@ -113,7 +113,7 @@ class AccountService {
           }
         }
       }
-      
+
       return {
         success: false,
         error: httpError.error,
@@ -130,7 +130,7 @@ class AccountService {
     } catch (error: unknown) {
       // Handle 404/500 errors with redirect
       const httpError = handleHttpError(error, true);
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: GetAccountsResponse; status?: number } };
         if (axiosError.response?.data) {
@@ -140,7 +140,7 @@ class AccountService {
           }
         }
       }
-      
+
       return {
         success: false,
         error: httpError.error,
@@ -157,7 +157,7 @@ class AccountService {
     } catch (error: unknown) {
       // Handle 404/500 errors with redirect
       const httpError = handleHttpError(error, true);
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: GetAccountByIdResponse; status?: number } };
         if (axiosError.response?.data) {
@@ -167,7 +167,7 @@ class AccountService {
           }
         }
       }
-      
+
       return {
         success: false,
         error: httpError.error,
@@ -184,7 +184,7 @@ class AccountService {
     } catch (error: unknown) {
       // Handle 404/500 errors with redirect
       const httpError = handleHttpError(error, true);
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: UpdateAccountResponse; status?: number } };
         if (axiosError.response?.data) {
@@ -194,7 +194,7 @@ class AccountService {
           }
         }
       }
-      
+
       return {
         success: false,
         error: httpError.error,
@@ -213,7 +213,7 @@ class AccountService {
     } catch (error: unknown) {
       // Handle 404/500 errors with redirect
       const httpError = handleHttpError(error, true);
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: DeleteAccountResponse; status?: number } };
         if (axiosError.response?.data) {
@@ -223,7 +223,7 @@ class AccountService {
           }
         }
       }
-      
+
       return {
         success: false,
         error: httpError.error,
@@ -240,7 +240,7 @@ class AccountService {
     } catch (error: unknown) {
       // Handle 404/500 errors with redirect
       const httpError = handleHttpError(error, true);
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { data?: TransferAccountResponse; status?: number } };
         if (axiosError.response?.data) {
@@ -250,7 +250,7 @@ class AccountService {
           }
         }
       }
-      
+
       return {
         success: false,
         error: httpError.error,

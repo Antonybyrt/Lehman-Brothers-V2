@@ -8,6 +8,7 @@ import {
   AuthController,
   EmailConfirmationController,
   AccountController,
+  TransactionController,
   ChatController,
   ChatRestController,
   SavingsBookController,
@@ -60,7 +61,8 @@ import {
   GetCurrentRatesUseCase,
   ApplyDailyInterestUseCase,
   DepositToSavingsBookUseCase,
-  WithdrawFromSavingsBookUseCase
+  WithdrawFromSavingsBookUseCase,
+  GetUserTransactionsUseCase
 } from '@lehman-brothers/application';
 import { createAppRoutes } from './routes';
 import { InterestScheduler } from './scheduler';
@@ -117,6 +119,9 @@ const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
 const transferAccountUseCase = new TransferAccountUseCase(accountRepository, transactionRepository);
 
+// Transaction use cases
+const getUserTransactionsUseCase = new GetUserTransactionsUseCase(transactionRepository, accountRepository);
+
 // Chat use cases
 const createChatUseCase = new CreateChatUseCase(chatRepository, userRepository, chatViewRepository, notificationService);
 const sendMessageUseCase = new SendMessageUseCase(chatRepository, messageRepository, userRepository, userViewRepository, notificationService);
@@ -142,6 +147,7 @@ const withdrawFromSavingsBookUseCase = new WithdrawFromSavingsBookUseCase(saving
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
 const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase, transferAccountUseCase);
+const transactionController = new TransactionController(getUserTransactionsUseCase);
 const chatRestController = new ChatRestController(
   createChatUseCase,
   getMessagesBeforeUseCase,
@@ -182,7 +188,7 @@ const savingsRateController = new SavingsRateController(
 );
 
 // Routes
-app.use(createAppRoutes(authController, emailConfirmationController, accountController, chatRestController, savingsBookController, savingsRateController));
+app.use(createAppRoutes(authController, emailConfirmationController, accountController, transactionController, chatRestController, savingsBookController, savingsRateController));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -208,6 +214,8 @@ httpServer.listen(port, () => {
   console.log(`   PATCH http://localhost:${port}/accounts/:id (Protected)`);
   console.log(`   POST http://localhost:${port}/accounts/:id/transfer (Protected)`);
   console.log(`   DELETE http://localhost:${port}/accounts/:id (Protected)`);
+  console.log(`📜 Transaction endpoints:`);
+  console.log(`   GET http://localhost:${port}/transactions (Protected)`);
   console.log(`💰 Savings endpoints:`);
   console.log(`   POST http://localhost:${port}/savings-books (Protected)`);
   console.log(`   GET http://localhost:${port}/savings-books (Protected)`);
