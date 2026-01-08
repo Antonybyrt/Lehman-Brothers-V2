@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { ConfirmationDialog } from "@/components/dialogs/ConfirmationDialog";
 
 interface ClientOrdersViewProps {
   stocks: Stock[];
@@ -26,6 +27,8 @@ export const ClientOrdersView: React.FC<ClientOrdersViewProps> = ({ stocks, orde
   const [orderToBuy, setOrderToBuy] = useState<Order | null>(null);
   const [buyQuantity, setBuyQuantity] = useState<number>(1);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedOrder) {
@@ -37,15 +40,22 @@ export const ClientOrdersView: React.FC<ClientOrdersViewProps> = ({ stocks, orde
     setSelectedOrder(order);
   };
 
-  const handleCancelOrder = async (orderId: string) => {
-    if (window.confirm(t('common.confirm'))) {
-      const success = await cancelOrder(orderId);
+  const handleCancelOrder = (orderId: string) => {
+    setOrderToCancel(orderId);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (orderToCancel) {
+      const success = await cancelOrder(orderToCancel);
       if (success) {
         await onRefresh();
-        if (selectedOrder?.id === orderId) {
+        if (selectedOrder?.id === orderToCancel) {
           setSelectedOrder(null);
         }
       }
+      setIsConfirmOpen(false);
+      setOrderToCancel(null);
     }
   };
 
@@ -324,6 +334,16 @@ export const ClientOrdersView: React.FC<ClientOrdersViewProps> = ({ stocks, orde
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+
+      <ConfirmationDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={confirmCancelOrder}
+        title={t('common.confirm')}
+        description={t('dashboard.client.investments.cancelOrderConfirm')}
+        confirmText={t('common.yes')}
+        cancelText={t('common.no')}
+      />
+    </div >
   );
 };

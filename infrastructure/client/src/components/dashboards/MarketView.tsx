@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Wallet, TrendingUp, History, AlertCircle } from 'lucide-react';
+import { ConfirmationDialog } from "@/components/dialogs/ConfirmationDialog";
 
 interface MarketViewProps {
   stocks: Stock[];
@@ -28,6 +29,8 @@ export const MarketView: React.FC<MarketViewProps> = ({ stocks, orders, accounts
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [listFilter, setListFilter] = useState<'MARKET' | 'MY_ORDERS'>('MARKET');
   const [trades, setTrades] = useState<any[]>([]);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
 
   // Derived State
   const activeStocks = useMemo(() => stocks.filter(s => s.active), [stocks]);
@@ -85,13 +88,20 @@ export const MarketView: React.FC<MarketViewProps> = ({ stocks, orders, accounts
     }
   };
 
-  const handleCancelOrder = async (orderId: string) => {
-    if (window.confirm(t('common.confirm'))) {
-      const success = await cancelOrder(orderId);
+  const handleCancelOrder = (orderId: string) => {
+    setOrderToCancel(orderId);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (orderToCancel) {
+      const success = await cancelOrder(orderToCancel);
       if (success) {
         await onRefresh();
         if (selectedStockId) fetchStockOrders(selectedStockId);
       }
+      setIsConfirmOpen(false);
+      setOrderToCancel(null);
     }
   };
 
@@ -363,6 +373,16 @@ export const MarketView: React.FC<MarketViewProps> = ({ stocks, orders, accounts
           </Tabs>
         </div>
       </div>
-    </div>
+
+      <ConfirmationDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={confirmCancelOrder}
+        title={t('common.confirm')}
+        description={t('dashboard.client.investments.cancelOrderConfirm')}
+        confirmText={t('common.yes')}
+        cancelText={t('common.no')}
+      />
+    </div >
   );
 };

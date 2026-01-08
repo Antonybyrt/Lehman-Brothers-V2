@@ -108,7 +108,8 @@
         "to": "Vers",
         "amount": "Montant",
         "date": "Date",
-        "noTransactions": "Aucune transaction récente"
+        "noTransactions": "Aucune transaction récente",
+        "newTransfer": "Nouveau virement"
       },
       "investments": {
         "title": "Portefeuille d'investissements",

@@ -24,8 +24,8 @@ import { ChatContainer } from "@/components/chat/ChatContainer"
 import { useTranslations } from 'next-intl'
 import { useInvestment } from "@/hooks/useInvestment"
 import { CreateStockDialog } from "@/components/dialogs"
-import { useEffect } from "react"
 import { savingsBookService, SavingsRate, SavingsBookType } from "@/services/savingsBookService"
+import toast from "react-hot-toast"
 
 export default function DirectorDashboard() {
   const t = useTranslations('dashboard.director')
@@ -111,13 +111,13 @@ export default function DirectorDashboard() {
 
       if (response.success) {
         await loadRates()
-        alert('Rate updated successfully')
+        toast.success('Rate updated successfully')
       } else {
-        alert(response.error || 'Failed to update rate')
+        toast.error(response.error || 'Failed to update rate')
       }
     } catch (error) {
       console.error(error)
-      alert('An error occurred')
+      toast.error('An error occurred')
     } finally {
       setUpdatingRate(false)
     }
@@ -587,7 +587,7 @@ export default function DirectorDashboard() {
                       disabled={updatingRate}
                       className="w-full bg-primary/90 hover:bg-primary/80"
                     >
-                      {updatingRate ? 'Updating...' : '{t('management.modifyRate')}'}
+                      {updatingRate ? 'Updating...' : t('management.modifyRate')}
                     </Button>
                   </div>
                 </div>

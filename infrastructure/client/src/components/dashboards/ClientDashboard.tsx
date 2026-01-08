@@ -634,7 +634,7 @@ export default function ClientDashboard() {
                       className="bg-primary/90 hover:bg-primary/80"
                     >
                       <ArrowRightLeft className="mr-2 h-4 w-4" />
-                      {t('transactions.newTransfer') || 'New Transfer'}
+                      {t('transactions.newTransfer')}
                     </Button>
                   )}
                 </CardTitle>
