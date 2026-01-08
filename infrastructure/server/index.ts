@@ -45,6 +45,7 @@ import {
   ConfirmEmailUseCase,
   CreateAccountUseCase,
   GetUserAccountsUseCase,
+  GetAllAccountsUseCase,
   GetAccountByIdUseCase,
   UpdateAccountUseCase,
   DeleteAccountUseCase,
@@ -133,6 +134,7 @@ const confirmEmailUseCase = new ConfirmEmailUseCase(emailConfirmationRepository,
 // Account use cases
 const createAccountUseCase = new CreateAccountUseCase(accountRepository, userRepository);
 const getUserAccountsUseCase = new GetUserAccountsUseCase(accountRepository, userRepository);
+const getAllAccountsUseCase = new GetAllAccountsUseCase(accountRepository, userRepository);
 const getAccountByIdUseCase = new GetAccountByIdUseCase(accountRepository);
 const updateAccountUseCase = new UpdateAccountUseCase(accountRepository);
 const deleteAccountUseCase = new DeleteAccountUseCase(accountRepository, transactionRepository);
@@ -182,7 +184,7 @@ const withdrawFromSavingsBookUseCase = new WithdrawFromSavingsBookUseCase(saving
 // HTTP Controllers
 const authController = new AuthController(registerUserUseCase, loginUserUseCase);
 const emailConfirmationController = new EmailConfirmationController(confirmEmailUseCase);
-const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase, transferAccountUseCase);
+const accountController = new AccountController(createAccountUseCase, getUserAccountsUseCase, getAccountByIdUseCase, updateAccountUseCase, deleteAccountUseCase, transferAccountUseCase, getAllAccountsUseCase);
 const transactionController = new TransactionController(getUserTransactionsUseCase);
 const chatRestController = new ChatRestController(
   createChatUseCase,
@@ -270,6 +272,22 @@ httpServer.listen(port, () => {
   console.log(`   POST http://localhost:${port}/savings-books/:id/withdraw (Protected)`);
   console.log(`   GET http://localhost:${port}/savings-rates (Protected)`);
   console.log(`   POST http://localhost:${port}/savings-rates (Protected - Director)`);
+  console.log(`💰 Investment endpoints:`);
+  console.log(`   GET http://localhost:${port}/stocks (Protected)`);
+  console.log(`   GET http://localhost:${port}/stocks/:id (Protected)`);
+  console.log(`   POST http://localhost:${port}/stocks (Protected - Director)`);
+  console.log(`   PATCH http://localhost:${port}/stocks/:id (Protected - Director)`);
+  console.log(`   DELETE http://localhost:${port}/stocks/:id (Protected - Director)`);
+  console.log(`   GET http://localhost:${port}/orders (Protected)`);
+  console.log(`   GET http://localhost:${port}/orders/:id (Protected)`);
+  console.log(`   POST http://localhost:${port}/orders (Protected - Director)`);
+  console.log(`   PATCH http://localhost:${port}/orders/:id (Protected - Director)`);
+  console.log(`   DELETE http://localhost:${port}/orders/:id (Protected - Director)`);
+  console.log(`   GET http://localhost:${port}/trades (Protected)`);
+  console.log(`   GET http://localhost:${port}/trades/:id (Protected)`);
+  console.log(`   POST http://localhost:${port}/trades (Protected - Director)`);
+  console.log(`   PATCH http://localhost:${port}/trades/:id (Protected - Director)`);
+  console.log(`   DELETE http://localhost:${port}/trades/:id (Protected - Director)`);
   console.log(`💬 Chat REST endpoints:`);
   console.log(`   POST http://localhost:${port}/chats (Protected)`);
   console.log(`   GET http://localhost:${port}/chats (Protected)`);

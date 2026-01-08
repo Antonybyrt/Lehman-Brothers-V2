@@ -14,6 +14,10 @@ export const createAccountRoutes = (accountController: AccountController): Route
     accountController.getUserAccounts(req, res)
   );
 
+  router.get('/accounts/all', authMiddleware, (req: AuthenticatedRequest, res) =>
+    accountController.getAllAccounts(req, res)
+  );
+
   router.get('/accounts/:id', authMiddleware, (req: AuthenticatedRequest, res) =>
     accountController.getAccountById(req, res)
   );

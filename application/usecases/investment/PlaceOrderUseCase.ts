@@ -29,6 +29,7 @@ export class PlaceOrderUseCase {
     type: OrderType;
     quantity: number;
     limitPriceInCents: number;
+    skipFees?: boolean;
   }): Promise<Result<Order, Error>> {
     // 1. Validate inputs
     const quantityResult = Quantity.create(params.quantity);
@@ -65,21 +66,29 @@ export class PlaceOrderUseCase {
     // 4. Validate Business Rules
     const FEE_IN_EUROS = 1;
 
-    // Fetch account for fees (needed for both BUY and SELL)
+    // Fetch account logic
     let account;
-    if (params.accountId) {
-      account = await this.accountRepository.findById(params.accountId);
-    } else {
-      // Try to find a default account
-      const accounts = await this.accountRepository.findByUserId(params.userId);
-      if (accounts.length > 0) account = accounts[0];
-    }
+    // We need an account if:
+    // 1. It's a BUY order (to pay for stock)
+    // 2. It's a SELL order AND fees are NOT skipped (to pay for fees)
+    const needsAccount = params.type === OrderType.BUY || !params.skipFees;
 
-    if (!account) {
-      return Result.failure(new Error('No account found to pay fees'));
-    }
-    if (account.getUserId() !== params.userId) {
-      return Result.failure(new Error('Account does not belong to user'));
+    if (needsAccount) {
+      if (params.accountId) {
+        account = await this.accountRepository.findById(params.accountId);
+      } else {
+        // Try to find a default account
+        const accounts = await this.accountRepository.findByUserId(params.userId);
+        if (accounts.length > 0) account = accounts[0];
+      }
+
+      if (!account) {
+        if (params.type === OrderType.BUY) return Result.failure(new Error('No account found to pay for order'));
+        return Result.failure(new Error('No account found to pay fees'));
+      }
+      if (account.getUserId() !== params.userId) {
+        return Result.failure(new Error('Account does not belong to user'));
+      }
     }
 
     if (params.type === OrderType.SELL) {
@@ -89,12 +98,14 @@ export class PlaceOrderUseCase {
       }
 
       // Check and Withdraw Fee
-      if (account.getBalance() < FEE_IN_EUROS) {
-        return Result.failure(new Error(`Insufficient funds for fee. Required: ${FEE_IN_EUROS}€`));
+      if (!params.skipFees && account) {
+        if (account.getBalance() < FEE_IN_EUROS) {
+          return Result.failure(new Error(`Insufficient funds for fee. Required: ${FEE_IN_EUROS}€`));
+        }
+        const feeWithdraw = account.withdraw(FEE_IN_EUROS);
+        if (feeWithdraw.isFailure()) return Result.failure(feeWithdraw.getError());
+        await this.accountRepository.save(feeWithdraw.getValue());
       }
-      const feeWithdraw = account.withdraw(FEE_IN_EUROS);
-      if (feeWithdraw.isFailure()) return Result.failure(feeWithdraw.getError());
-      await this.accountRepository.save(feeWithdraw.getValue());
 
       // Deduct shares immediately (reservation)
       const removeResult = portfolio.removeShares(params.stockId, quantity);
@@ -104,17 +115,20 @@ export class PlaceOrderUseCase {
     } else if (params.type === OrderType.BUY) {
       const totalCost = limitPrice.multiply(quantity.getValue());
       const costInEuro = totalCost.getAmountInEuro();
-      const totalRequired = costInEuro + FEE_IN_EUROS;
+      // Fee is 0 if skipped
+      const fee = params.skipFees ? 0 : FEE_IN_EUROS;
+      const totalRequired = costInEuro + fee;
 
       // Check and Withdraw Cash + Fee
-      if (account.getBalance() < totalRequired) {
-        return Result.failure(new Error(`Insufficient funds. Required: ${totalRequired}€ (incl. 1€ fee), Available: ${account.getBalance()}€`));
+      if (account && account.getBalance() < totalRequired) {
+        return Result.failure(new Error(`Insufficient funds. Required: ${totalRequired}€ (incl. ${fee}€ fee), Available: ${account.getBalance()}€`));
       }
 
-      const withdrawResult = account.withdraw(totalRequired);
-      if (withdrawResult.isFailure()) return Result.failure(withdrawResult.getError());
-
-      await this.accountRepository.save(withdrawResult.getValue());
+      if (account) {
+        const withdrawResult = account.withdraw(totalRequired);
+        if (withdrawResult.isFailure()) return Result.failure(withdrawResult.getError());
+        await this.accountRepository.save(withdrawResult.getValue());
+      }
     }
 
     // 6. Create Order

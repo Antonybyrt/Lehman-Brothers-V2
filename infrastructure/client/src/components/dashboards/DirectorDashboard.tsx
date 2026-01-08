@@ -33,6 +33,27 @@ export default function DirectorDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isCreateStockOpen, setIsCreateStockOpen] = useState(false)
   const { stocks, fetchStocks, updateStockStatus } = useInvestment()
+  const [allAccounts, setAllAccounts] = useState<any[]>([])
+
+  useEffect(() => {
+    const loadData = async () => {
+      // Fetch all stocks
+      fetchStocks(true)
+
+      // Fetch all accounts
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        // We need to import accountService dynamically or ensure it's imported
+        const { accountService } = await import('@/services/accountService')
+        accountService.setAuthToken(token)
+        const response = await accountService.getAllAccounts()
+        if (response.success && response.accounts) {
+          setAllAccounts(response.accounts)
+        }
+      }
+    }
+    loadData()
+  }, [fetchStocks])
 
   useEffect(() => {
     if (activeTab === 'stocks') {
@@ -106,13 +127,20 @@ export default function DirectorDashboard() {
   const mockData = {
     bankStats: {
       totalClients: 1247,
-      totalAccounts: 3891,
-      totalLoans: 156,
+      totalAccounts: allAccounts.length,
+      totalLoans: stocks.length,
       totalDeposits: 45600000,
       monthlyRevenue: 890000,
       savingsRate: 2.5
     },
-    accounts: [
+    accounts: allAccounts.length > 0 ? allAccounts.map(acc => ({
+      id: acc.id,
+      client: acc.name,
+      iban: acc.iban,
+      balance: acc.balance,
+      status: 'active', // Default status as API doesn't return it yet
+      type: acc.isSavings ? 'savings' : 'current'
+    })) : [
       { id: '1', client: 'Jean Dupont', iban: 'FR76 3000 1007 9412 3456 7890 123', balance: 15420.50, status: 'active', type: 'current' },
       { id: '2', client: 'Marie Martin', iban: 'FR76 3000 1007 9412 3456 7890 124', balance: 8500.00, status: 'active', type: 'savings' },
       { id: '3', client: 'Pierre Durand', iban: 'FR76 3000 1007 9412 3456 7890 125', balance: 3200.75, status: 'banned', type: 'current' },

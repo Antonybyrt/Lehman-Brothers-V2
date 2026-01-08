@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { Iban } from '@lehman-brothers/domain';
 
 export class PrismaAccountRepository implements AccountRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaClient) { }
 
   async save(account: Account): Promise<void> {
     const accountData = account.toPersistence();
@@ -47,6 +47,13 @@ export class PrismaAccountRepository implements AccountRepository {
   async findByUserId(userId: string): Promise<Account[]> {
     const data = await this.prisma.account.findMany({
       where: { user_id: userId },
+      orderBy: { created_at: 'desc' },
+    });
+    return data.map(item => Account.fromPersistence(item));
+  }
+
+  async findAll(): Promise<Account[]> {
+    const data = await this.prisma.account.findMany({
       orderBy: { created_at: 'desc' },
     });
     return data.map(item => Account.fromPersistence(item));

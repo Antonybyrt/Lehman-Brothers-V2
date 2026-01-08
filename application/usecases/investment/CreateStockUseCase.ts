@@ -106,7 +106,8 @@ export class CreateStockUseCase {
       stockId: stock.getId(),
       type: OrderType.SELL,
       quantity: params.initialQuantity,
-      limitPriceInCents: params.initialPriceInCents
+      limitPriceInCents: params.initialPriceInCents,
+      skipFees: true
     });
 
     if (orderResult.isFailure()) {

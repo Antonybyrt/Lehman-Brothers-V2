@@ -149,6 +149,32 @@ class AccountService {
     }
   }
 
+  // Get all accounts (Director only)
+  async getAllAccounts(): Promise<GetAccountsResponse> {
+    try {
+      const response = await this.api.get('/accounts/all');
+      return response.data;
+    } catch (error: unknown) {
+      const httpError = handleHttpError(error, true);
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: GetAccountsResponse; status?: number } };
+        if (axiosError.response?.data) {
+          const status = axiosError.response.status;
+          if (status !== 404 && status !== 500) {
+            return axiosError.response.data;
+          }
+        }
+      }
+
+      return {
+        success: false,
+        error: httpError.error,
+        type: httpError.errorType || 'network'
+      };
+    }
+  }
+
   // Get account by ID
   async getAccountById(accountId: string): Promise<GetAccountByIdResponse> {
     try {

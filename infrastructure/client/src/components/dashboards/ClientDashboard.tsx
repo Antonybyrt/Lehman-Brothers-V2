@@ -131,8 +131,16 @@ export default function ClientDashboard() {
 
     loadAccounts()
     loadSavingsBooks()
+    // Fetch investment data for stats
+    fetchStocks()
+    fetchPortfolio()
     loadTransactions()
-  }, [router])
+  }, [router, fetchStocks, fetchPortfolio])
+
+  const totalInvestmentValue = portfolio?.holdings.reduce((total, holding) => {
+    const stock = stocks.find(s => s.id === holding.stockId);
+    return total + (holding.quantity * (stock?.currentPrice || 0));
+  }, 0) || 0;
 
   const loadTransactions = async () => {
     try {
@@ -291,7 +299,7 @@ export default function ClientDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t('stats.investmentValue')}</p>
-                  <p className="text-2xl font-bold text-foreground">{mockData.investmentValue.toLocaleString('fr-FR')} €</p>
+                  <p className="text-2xl font-bold text-foreground">{totalInvestmentValue.toLocaleString('fr-FR')} €</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-blue-500" />
               </div>
