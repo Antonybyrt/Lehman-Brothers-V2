@@ -19,7 +19,9 @@
     "refresh": "Actualiser",
     "noData": "Aucune donnée disponible",
     "processing": "Traitement en cours...",
-    "all": "Tout"
+    "all": "Tout",
+    "yes": "Oui",
+    "no": "Non"
   },
   "nav": {
     "home": "Accueil",
@@ -146,7 +148,19 @@
         "price": "Prix",
         "date": "Date",
         "buy": "Achat",
-        "sell": "Vente"
+        "sell": "Vente",
+        "cancelOrderConfirm": "Êtes-vous sûr de vouloir annuler cet ordre ?"
+      },
+      "market": {
+        "activeStocks": "Actions actives",
+        "currentPrice": "Prix actuel",
+        "trading": "Trading",
+        "available": "Disponible",
+        "holding": "Détention",
+        "orderBook": "Carnet d'ordres",
+        "filterHistory": "Historique",
+        "filterMarket": "Marché",
+        "filterMyOrders": "Mes ordres"
       }
     },
     "advisor": {

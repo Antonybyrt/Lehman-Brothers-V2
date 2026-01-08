@@ -18,7 +18,9 @@
     "viewAll": "View All",
     "refresh": "Refresh",
     "noData": "No data available",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "yes": "Yes",
+    "no": "No"
   },
   "nav": {
     "home": "Home",
@@ -143,7 +145,19 @@
         "selectOrder": "Select an order to view details",
         "type": "Type",
         "price": "Price",
-        "date": "Date"
+        "date": "Date",
+        "cancelOrderConfirm": "Are you sure you want to cancel this order?"
+      },
+      "market": {
+        "activeStocks": "Active Stocks",
+        "currentPrice": "Current Price",
+        "trading": "Trading",
+        "available": "Available",
+        "holding": "Holding",
+        "orderBook": "Order Book",
+        "filterHistory": "History",
+        "filterMarket": "Market",
+        "filterMyOrders": "My Orders"
       }
     },
     "advisor": {
